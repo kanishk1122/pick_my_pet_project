@@ -1,113 +1,158 @@
-import React, { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { usePosts, usePostFilters } from "../../hooks/usePosts";
+import { useAppDispatch, useAppSelector } from "../../store";
+import {
+  fetchPosts,
+  setFilters,
+  setViewMode,
+} from "../../store/slices/postSlice";
 import FilterSidebar from "./FilterSidebar";
 import FilteredPetList from "./FilteredPetList";
-import PostSlicer from "@store/slices/PostSlicer"; // Adjust the import path as needed
+import PostSlicer from "./PostSlicer";
 
 const PetList = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const hasInitialized = useRef(false);
 
-  // Redux hooks
-  const { posts, loading, error, pageInfo, viewMode, fetchPosts, setViewMode } =
-    usePosts();
-  const {
-    filters,
-    updateFiltersFromURL,
-    handleFilterChange,
-    handleSortChange,
-    handlePageChange,
-    handlePageSizeChange,
-  } = usePostFilters(navigate, location);
+  // Redux state
+  const posts = useAppSelector((state) => state.posts.posts);
+  const loading = useAppSelector((state) => state.posts.loading);
+  const error = useAppSelector((state) => state.posts.error);
+  const pageInfo = useAppSelector((state) => state.posts.pageInfo);
+  const filters = useAppSelector((state) => state.posts.filters);
+  const viewMode = useAppSelector((state) => state.posts.viewMode);
 
-  // Initialize filters from URL on mount
-  useEffect(() => {
-    updateFiltersFromURL();
-  }, [updateFiltersFromURL]);
+  // Memoized handlers
+  const handleFilterChange = useCallback(
+    (newFilters) => {
+      const queryParams = new URLSearchParams({
+        ...newFilters,
+        page: "1",
+      });
+      navigate(`${location.pathname}?${queryParams.toString()}`);
+    },
+    [navigate, location.pathname]
+  );
 
-  // Fetch posts when filters change
+  const handleSortChange = useCallback(
+    (sortBy) => {
+      const queryParams = new URLSearchParams(location.search);
+      queryParams.set("sort", sortBy);
+      queryParams.set("page", "1");
+      navigate(`${location.pathname}?${queryParams.toString()}`);
+    },
+    [navigate, location.pathname, location.search]
+  );
+
+  const handlePageChange = useCallback(
+    (page) => {
+      const queryParams = new URLSearchParams(location.search);
+      queryParams.set("page", page.toString());
+      navigate(`${location.pathname}?${queryParams.toString()}`);
+    },
+    [navigate, location.pathname, location.search]
+  );
+
+  const handlePageSizeChange = useCallback(
+    (size) => {
+      const queryParams = new URLSearchParams(location.search);
+      queryParams.set("limit", size.toString());
+      queryParams.set("page", "1");
+      navigate(`${location.pathname}?${queryParams.toString()}`);
+    },
+    [navigate, location.pathname, location.search]
+  );
+
+  const handleViewModeChange = useCallback(
+    (mode) => {
+      dispatch(setViewMode(mode));
+    },
+    [dispatch]
+  );
+
+  // Single effect to handle URL changes and fetch posts
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const params = Object.fromEntries(searchParams.entries());
 
+    // Set defaults
     if (!params.page) {
       params.page = "1";
     }
     if (!params.limit) {
-      params.limit = pageInfo.limit.toString();
+      params.limit = "12";
     }
 
-    fetchPosts(params);
-  }, [location.search, fetchPosts, pageInfo.limit]);
+    // Update filters from URL on first load
+    if (!hasInitialized.current) {
+      const urlFilters = {
+        species: params.species || "",
+        breed: params.breed || "",
+        type: params.type || "",
+        minPrice: params.minPrice || "0",
+        maxPrice: params.maxPrice || "100000",
+        sortBy: params.sort || "newest",
+        page: parseInt(params.page) || 1,
+      };
+      dispatch(setFilters(urlFilters));
+      hasInitialized.current = true;
+    }
+
+    // Fetch posts
+    dispatch(fetchPosts(params));
+  }, [location.search, dispatch]);
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">Error loading pets: {error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex bg-white rounded-t-2xl border-t-4 border-black min-h-screen overflow-hidden">
-      <FilterSidebar
-        onFilterChange={handleFilterChange}
-        initialFilters={Object.fromEntries(
-          new URLSearchParams(location.search)
-        )}
-      />
-      <div className="flex-1 flex flex-col">
-        <div className="px-8 pt-8 pb-4">
-          <h1 className="text-4xl font-bold mb-4 text-center text-green-600">
-            Find Your Perfect Pet
-          </h1>
-        </div>
-
-        {error && (
-          <div className="px-8 mb-4">
-            <div className="text-red-600 text-center bg-red-50 border border-red-200 rounded-lg p-4">
-              {error}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
+              <FilterSidebar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                loading={loading}
+              />
             </div>
           </div>
-        )}
 
-        {loading ? (
-          <div className="flex-1 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Post Slicer */}
+            <div className="mb-6">
+              <PostSlicer
+                filters={filters}
+                onSortChange={handleSortChange}
+                onPageSizeChange={handlePageSizeChange}
+                onViewModeChange={handleViewModeChange}
+                pageInfo={pageInfo}
+                viewMode={viewMode}
+                loading={loading}
+              />
+            </div>
+
+            {/* Pet List */}
+            <FilteredPetList
+              posts={posts}
+              pageInfo={pageInfo}
+              onPageChange={handlePageChange}
+            />
           </div>
-        ) : (
-          <>
-            {posts.length === 0 ? (
-              <div className="flex-1 flex justify-center items-center">
-                <div className="text-center text-gray-600">
-                  <div className="text-6xl mb-4">🐾</div>
-                  <div className="text-xl font-medium mb-2">
-                    No pets found matching your criteria
-                  </div>
-                  <div className="text-gray-500">
-                    Try adjusting your filters or search terms
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <PostSlicer
-                  pageInfo={pageInfo}
-                  onSortChange={handleSortChange}
-                  onViewModeChange={setViewMode}
-                  onPageSizeChange={handlePageSizeChange}
-                  currentSort={filters.sortBy}
-                  currentViewMode={viewMode}
-                  currentPageSize={pageInfo.limit}
-                />
-                <div className="flex-1 p-8 pt-4">
-                  <FilteredPetList
-                    pets={posts}
-                    pageInfo={pageInfo}
-                    onPageChange={handlePageChange}
-                    viewMode={viewMode}
-                  />
-                </div>
-              </>
-            )}
-          </>
-        )}
+        </div>
       </div>
     </div>
   );
 };
 
-export default React.memo(PetList);
+export default PetList;

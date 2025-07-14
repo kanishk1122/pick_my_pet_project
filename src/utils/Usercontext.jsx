@@ -105,13 +105,20 @@ export const UserProvide = ({ children }) => {
           import.meta.env.VITE_REACT_APP_CRYPTO_KEY
         ).toString(CryptoJS.enc.Utf8);
 
-        const userData = JSON.parse(decryptdata);
-        setUser(userData);
-        fetchUseraddresses(userData);
-        fetchAndUpdateUserData(userData);
+        if (decryptdata && decryptdata.trim()) {
+          const userData = JSON.parse(decryptdata);
+          setUser(userData);
+          fetchUseraddresses(userData);
+          fetchAndUpdateUserData(userData);
+        } else {
+          // Invalid or empty decrypted data, remove the cookie
+          Cookies.remove("Userdata");
+        }
       }
     } catch (error) {
       console.error("Error initializing user:", error);
+      // Remove corrupted cookie
+      Cookies.remove("Userdata");
     } finally {
       setIsLoading(false);
     }

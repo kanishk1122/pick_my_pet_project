@@ -1,10 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Pagination from './Pagination';
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import PropTypes from "prop-types";
+import Pagination from "./Pagination";
 
-const FilteredPetList = ({ pets, pageInfo, onPageChange }) => {
-  if (!pets.length) {
+const FilteredPetList = ({ posts, pageInfo, onPageChange }) => {
+  if (!posts || !posts.length) {
     return (
       <div className="text-center text-gray-600 mt-8">
         No pets found matching your criteria
@@ -15,7 +15,7 @@ const FilteredPetList = ({ pets, pageInfo, onPageChange }) => {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {pets.map((pet, index) => (
+        {posts.map((pet, index) => (
           <motion.div
             key={pet._id}
             initial={{ opacity: 0, y: 20 }}
@@ -31,20 +31,32 @@ const FilteredPetList = ({ pets, pageInfo, onPageChange }) => {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-0 left-0 m-2">
-                    <span className={`px-2 py-1 text-xs font-bold uppercase rounded-full ${
-                      pet.type === 'free' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
-                    }`}>
-                      {pet.type === 'free' ? 'Adoption' : 'For Sale'}
+                    <span
+                      className={`px-2 py-1 text-xs font-bold uppercase rounded-full ${
+                        pet.type === "free"
+                          ? "bg-green-500 text-white"
+                          : "bg-blue-500 text-white"
+                      }`}
+                    >
+                      {pet.type === "free" ? "Adoption" : "For Sale"}
                     </span>
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">{pet.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">{pet.discription}</p>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                    {pet.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                    {pet.discription}
+                  </p>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700 font-medium">{pet.species} - {pet.category}</span>
-                    {pet.type === 'paid' && (
-                      <span className="text-green-600 font-bold">₹{pet.amount.toLocaleString('en-IN')}</span>
+                    <span className="text-gray-700 font-medium">
+                      {pet.species} - {pet.category}
+                    </span>
+                    {pet.type === "paid" && (
+                      <span className="text-green-600 font-bold">
+                        ₹{pet.amount.toLocaleString("en-IN")}
+                      </span>
                     )}
                   </div>
                   {pet.address && (
@@ -68,6 +80,20 @@ const FilteredPetList = ({ pets, pageInfo, onPageChange }) => {
       )}
     </>
   );
+};
+
+FilteredPetList.propTypes = {
+  posts: PropTypes.array,
+  pageInfo: PropTypes.shape({
+    currentPage: PropTypes.number,
+    totalPages: PropTypes.number,
+  }),
+  onPageChange: PropTypes.func.isRequired,
+};
+
+FilteredPetList.defaultProps = {
+  posts: [],
+  pageInfo: null,
 };
 
 export default FilteredPetList;
