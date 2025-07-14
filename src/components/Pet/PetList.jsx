@@ -132,13 +132,13 @@ const PetList = () => {
             {/* Post Slicer */}
             <div className="mb-6">
               <PostSlicer
-                filters={filters}
+                currentSort={filters.sortBy}
+                currentViewMode={viewMode}
+                currentPageSize={pageInfo.limit}
                 onSortChange={handleSortChange}
                 onPageSizeChange={handlePageSizeChange}
                 onViewModeChange={handleViewModeChange}
                 pageInfo={pageInfo}
-                viewMode={viewMode}
-                loading={loading}
               />
             </div>
 

@@ -40,12 +40,12 @@ export const fetchPosts = createAsyncThunk(
       }
 
       return {
-        posts: response.data.posts || [],
+        posts: response.data.data || [],
         pageInfo: {
-          currentPage: response.data.currentPage,
-          totalPages: response.data.totalPages,
-          totalPosts: response.data.totalPosts,
-          limit: params.limit || 12,
+          currentPage: response.data.meta?.pagination?.page || 1,
+          totalPages: response.data.meta?.pagination?.totalPages || 1,
+          totalPosts: response.data.meta?.pagination?.total || 0,
+          limit: response.data.meta?.pagination?.limit || 12,
         },
       };
     } catch (error) {
