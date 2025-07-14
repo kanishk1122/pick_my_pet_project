@@ -71,13 +71,7 @@ const FilteredPetList = ({ posts, pageInfo, onPageChange }) => {
           </motion.div>
         ))}
       </div>
-      {pageInfo && (
-        <Pagination
-          currentPage={pageInfo.currentPage}
-          totalPages={pageInfo.totalPages}
-          onPageChange={onPageChange}
-        />
-      )}
+    
     </>
   );
 };
