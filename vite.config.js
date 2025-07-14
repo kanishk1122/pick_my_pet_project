@@ -12,6 +12,7 @@ export default defineConfig({
       '@utils': path.resolve( './src/utils'), // Map @utils to src/utils
       '@CSS' : path.resolve('./src/assets/CSS'),
       '@Consts': path.resolve('./src/Consts'),
+      '@store': path.resolve('./src/store'),
     },
   },
 });
