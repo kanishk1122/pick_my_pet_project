@@ -41,7 +41,16 @@ const PostSlicer = ({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <motion.div
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        duration: 0.4,
+        ease: "easeOut",
+        bounce: 0.3,
+      }}
+      className="bg-transparent border-b border-gray-200 px-6 py-4"
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         {/* Results Info */}
         <div className="flex items-center gap-4">
@@ -191,7 +200,7 @@ const PostSlicer = ({
           Premium Pets
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -22,7 +22,7 @@ const FilteredPetList = ({ posts, pageInfo, onPageChange }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Link to={`/pet/${pet._id}`} className="block">
+            <Link to={`/pet/${pet.slug}`} className="block">
               <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <div className="relative h-48">
                   <img

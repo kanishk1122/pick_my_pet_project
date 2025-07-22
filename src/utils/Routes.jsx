@@ -52,7 +52,7 @@ function App() {
               <Route path="/pets" element={<PetList />} />
               <Route path="/pets/filter" element={<FilteredPetList />} />
               <Route
-                path="/pet/:id"
+                path="/pet/:slug"
                 element={<PetViewer onAccess={handlePetInfoAccess} />}
               />
               <Route path="/pets/loving-companions" element={<FreePetList />} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { POST } from "../../Consts/apikeys";
 import { useUser } from "../../utils/Usercontext";
@@ -13,21 +13,24 @@ const PetViewer = () => {
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
 
   useEffect(() => {
     const fetchPet = async () => {
       try {
-        // Use apiService instead of axios directly
-        const response = await apiService.get(`${POST.GetPostById}/${id}`);
+        // This fetches pet data using the slug from URL
+        const response = await apiService.get(`${POST.GetPostBySlug(slug)}`);
 
-        setPet(response.data.post);
+        // Sets the pet data from response - data is nested under response.data.data
+        setPet(response.data.data);
 
-        // If we have a canonical slug and it's not the same as the URL parameter,
-        // update the URL for better SEO
-        if (response.data.canonicalSlug && response.data.canonicalSlug !== id) {
+        // Handles URL canonicalization for SEO
+        if (
+          response.data.canonicalSlug &&
+          response.data.canonicalSlug !== slug
+        ) {
           navigate(`/pet/${response.data.canonicalSlug}`, { replace: true });
         }
 
@@ -39,7 +42,7 @@ const PetViewer = () => {
     };
 
     fetchPet();
-  }, [id, navigate]);
+  }, [slug, navigate]);
 
   const handleChatClick = () => {
     setIsChatOpen(true);

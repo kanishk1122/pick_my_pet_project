@@ -148,7 +148,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
     <motion.div
       initial={{ x: -300 }}
       animate={{ x: 0 }}
-      className="w-[260px] h-full pt-10 min-h-screen bg-white"
+      className="w-[260px] h-full pt-10 min-h-screen bg-transparent"
     >
       <h2 className="text-2xl font-bold mb-6 text-green-600 text-center">
         Filter Pets
