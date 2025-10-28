@@ -1,11 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import postReducer from "./slices/postSlice";
+import speciesReducer from "./slices/speciesSlice";
+import addressReducer from "./slices/addressSlice";
 
 // Configure the store
 export const store = configureStore({
   reducer: {
     posts: postReducer,
+    species: speciesReducer,
+    addresses: addressReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
-import { POST } from "../../Consts/apikeys";
+import { useSpecies } from "../../hooks/useSpecies";
 import "../../styles/rangeSlider.css";
 
 const FilterSidebar = ({ onFilterChange, initialFilters }) => {
@@ -14,33 +13,12 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
     ...initialFilters,
   });
 
-  const [breeds, setBreeds] = useState([]);
-  const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
+  const { breeds, loading: isLoadingBreeds, getBreeds } = useSpecies();
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
 
   useEffect(() => {
-    const fetchBreeds = async () => {
-      if (!filters.species) {
-        setBreeds([]);
-        return;
-      }
-
-      try {
-        setIsLoadingBreeds(true);
-        const response = await axios.get(POST.Breeds(filters.species));
-        if (response.data.success) {
-          console.log("Breeds data:", response.data.breeds);
-          setBreeds(response.data.breeds);
-        }
-      } catch (error) {
-        console.error("Error fetching breeds:", error);
-      } finally {
-        setIsLoadingBreeds(false);
-      }
-    };
-
-    fetchBreeds();
-  }, [filters.species]);
+    getBreeds(filters.species);
+  }, [filters.species, getBreeds]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

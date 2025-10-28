@@ -68,12 +68,30 @@ const CreatePostForm = ({ onClose, onSuccess }) => {
     const files = Array.from(e.target.files);
     setImageFiles(files);
 
-    // For demo purposes, create mock URLs
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-    setFormData((prev) => ({
-      ...prev,
-      images: imageUrls,
-    }));
+    // Convert files to base64
+    const filePromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
+    });
+
+    Promise.all(filePromises)
+      .then((base64Images) => {
+        setFormData((prev) => ({
+          ...prev,
+          images: base64Images,
+        }));
+      })
+      .catch((error) => {
+        console.error("Error converting images to base64:", error);
+        setErrors((prev) => ({
+          ...prev,
+          images: "Error processing images.",
+        }));
+      });
   };
 
   const handleSubmit = async (e) => {

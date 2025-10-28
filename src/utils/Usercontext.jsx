@@ -1,4 +1,4 @@
-import  {
+import {
   createContext,
   useContext,
   useEffect,
@@ -7,7 +7,7 @@ import  {
 } from "react";
 import Cookies from "js-cookie";
 import PropTypes from "prop-types";
-import { ADDRESS, USER } from "../Consts/apikeys";
+import { USER } from "../Consts/apikeys";
 import axios from "axios";
 
 const usercontext = createContext();
@@ -16,13 +16,6 @@ export const UserProvide = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [addressPagination, setAddressPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalAddresses: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-  });
 
   // Configure axios to include cookies in requests
   axios.defaults.withCredentials = true;
@@ -40,11 +33,6 @@ export const UserProvide = ({ children }) => {
           const userData = response.data.data.user;
           setUser(userData);
           setIsAuthenticated(true);
-
-          // Fetch additional user data
-          if (userData.id) {
-            fetchUseraddresses(userData);
-          }
         } else {
           handleAuthFailure();
         }
@@ -69,38 +57,9 @@ export const UserProvide = ({ children }) => {
     Cookies.remove("auth_token");
   };
 
-  const fetchUseraddresses = async (userData, page = 1, limit = 10) => {
-    try {
-      if (!userData?.id) {
-        console.error("No valid user ID available");
-        return;
-      }
-
-      const response = await axios.get(
-        `${ADDRESS.Get(userData.id)}?page=${page}&limit=${limit}`
-      );
-
-      if (response?.data?.success) {
-        setUser((prev) => ({
-          ...prev,
-          addresses: response.data.addresses,
-        }));
-        setAddressPagination(response.data.pagination);
-      }
-    } catch (error) {
-      console.error(
-        "Error fetching addresses:",
-        error.response?.data || error.message
-      );
-    }
-  };
-
   const updateUserAfterAuth = useCallback((userData) => {
     setUser(userData);
     setIsAuthenticated(true);
-    if (userData) {
-      fetchUseraddresses(userData);
-    }
   }, []);
 
   const logout = useCallback(async () => {
@@ -137,8 +96,6 @@ export const UserProvide = ({ children }) => {
     setUser: updateUserAfterAuth,
     isAuthenticated,
     isLoading,
-    fetchUseraddresses,
-    addressPagination,
     logout,
     checkAuthStatus,
   };

@@ -28,11 +28,16 @@ const Login = ({
 
   function loginUser(email, password) {
     axios
-      .post(`${USER.Login}`, {
-        email: email,
-        password: password, // Remove encryption, handle on backend
-        withCredentials: true,
-      })
+      .post(
+        `${USER.Login}`,
+        {
+          email: email,
+          password: password, // Remove encryption, handle on backend
+        },
+        {
+          withCredentials: true,
+        }
+      )
       .then((response) => {
         if (response.status === 200) {
           Swal.fire({

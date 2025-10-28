@@ -8,6 +8,7 @@ import {
   FaSortAmountUp,
 } from "react-icons/fa";
 import PropTypes from "prop-types";
+import { SLICER } from "../../Consts/apikeys";
 
 const PostSlicer = ({
   pageInfo,
@@ -20,20 +21,20 @@ const PostSlicer = ({
 }) => {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
-  const sortOptions = [
-    { value: "newest", label: "Newest First", icon: FaSortAmountDown },
-    { value: "oldest", label: "Oldest First", icon: FaSortAmountUp },
-    { value: "price-low", label: "Price: Low to High", icon: FaSortAmountUp },
-    {
-      value: "price-high",
-      label: "Price: High to Low",
-      icon: FaSortAmountDown,
-    },
-    { value: "title-az", label: "Title: A to Z", icon: FaSort },
-    { value: "title-za", label: "Title: Z to A", icon: FaSort },
-  ];
+  const sortOptions = SLICER.SORT_OPTIONS.map((opt) => {
+    switch (opt.value) {
+      case "newest":
+      case "price-high":
+        return { ...opt, icon: FaSortAmountDown };
+      case "oldest":
+      case "price-low":
+        return { ...opt, icon: FaSortAmountUp };
+      default:
+        return { ...opt, icon: FaSort };
+    }
+  });
 
-  const pageSizeOptions = [6, 12, 24, 48];
+  const pageSizeOptions = SLICER.PAGE_SIZE_OPTIONS;
 
   const getCurrentSortLabel = () => {
     const option = sortOptions.find((opt) => opt.value === currentSort);
@@ -142,9 +143,9 @@ const PostSlicer = ({
           {/* View Mode Toggle */}
           <div className="flex items-center border border-gray-300 rounded-md">
             <button
-              onClick={() => onViewModeChange("grid")}
+              onClick={() => onViewModeChange(SLICER.VIEW_MODES.GRID)}
               className={`p-2 text-sm ${
-                currentViewMode === "grid"
+                currentViewMode === SLICER.VIEW_MODES.GRID
                   ? "bg-green-500 text-white"
                   : "text-gray-600 hover:text-gray-800"
               }`}
@@ -153,9 +154,9 @@ const PostSlicer = ({
               <FaTh className="w-4 h-4" />
             </button>
             <button
-              onClick={() => onViewModeChange("list")}
+              onClick={() => onViewModeChange(SLICER.VIEW_MODES.LIST)}
               className={`p-2 text-sm border-l border-gray-300 ${
-                currentViewMode === "list"
+                currentViewMode === SLICER.VIEW_MODES.LIST
                   ? "bg-green-500 text-white"
                   : "text-gray-600 hover:text-gray-800"
               }`}

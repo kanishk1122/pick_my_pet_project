@@ -6,15 +6,23 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import AddressForm from "./User/UpdateAddress";
 import { useSwal } from "@utils/Customswal.jsx";
+import { useSpecies } from "@hooks/useSpecies";
+import { useAddresses } from "@hooks/useAddresses";
 
 const CreatePost = () => {
   const { user } = useUser();
   const Swal = useSwal();
+  const {
+    species,
+    hierarchy: speciesHierarchy,
+    breeds: availableBreeds,
+    loading: isLoadingSpecies,
+    getSpeciesHierarchy,
+    getBreeds,
+  } = useSpecies();
+  const { addresses, getAddresses } = useAddresses();
+
   const [selectedImages, setSelectedImages] = useState([]);
-  const [breeds, setBreeds] = useState([]);
-  const [species, setSpecies] = useState([]);
-  const [selectedSpecies, setSelectedSpecies] = useState(null);
-  const [isLoadingSpecies, setIsLoadingSpecies] = useState(false);
   const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
   const [formData, setFormData] = useState({
     petName: "",
@@ -40,130 +48,45 @@ const CreatePost = () => {
 
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
-  const [speciesHierarchy, setSpeciesHierarchy] = useState([]);
-  const [availableBreeds, setAvailableBreeds] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
-    fetchSpeciesHierarchy();
-  }, []);
+    getSpeciesHierarchy();
+    getAddresses();
+  }, [getSpeciesHierarchy, getAddresses]);
+
+  useEffect(() => {
+    const fetchBreedsForSpecies = async () => {
+      if (formData.species) {
+        const selectedSpeciesData = speciesHierarchy.find(
+          (s) => s.name === formData.species
+        );
+
+        if (selectedSpeciesData && selectedSpeciesData.breeds) {
+          // Breeds are already in hierarchy, no need to fetch
+        } else {
+          setIsLoadingBreeds(true);
+          await getBreeds(formData.species);
+          setIsLoadingBreeds(false);
+        }
+      } else {
+        getBreeds(null); // Clear breeds
+      }
+    };
+    fetchBreedsForSpecies();
+  }, [formData.species, speciesHierarchy, getBreeds]);
 
   useEffect(() => {
     if (formData.species) {
-      // Find the selected species in the hierarchy
       const selectedSpeciesData = speciesHierarchy.find(
         (s) => s.name === formData.species
       );
-
-      if (selectedSpeciesData && selectedSpeciesData.breeds) {
-        // Use the breeds directly from the hierarchy
-        setAvailableBreeds(selectedSpeciesData.breeds);
-        setIsLoadingBreeds(false);
-      } else {
-        // Fallback to traditional API call
-        fetchBreeds(formData.species);
+      if (selectedSpeciesData?.breeds) {
+        setFormData((prev) => ({ ...prev, breed: "" }));
       }
-    } else {
-      setAvailableBreeds([]);
     }
-  }, [formData.species, speciesHierarchy]);
-
-  const fetchSpeciesHierarchy = async () => {
-    setIsLoadingSpecies(true);
-    try {
-      console.log("Fetching species hierarchy...");
-      const response = await axios.get(POST.SpeciesHierarchy, {
-        headers: {
-          Authorization: `Bearer ${user?.sessionToken || ""}`,
-          userid: user?.id || "",
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.data.success) {
-        console.log("Species hierarchy received:", response.data.hierarchy);
-        setSpeciesHierarchy(response.data.hierarchy);
-        setSpecies(response.data.hierarchy);
-      } else {
-        console.warn(
-          "Species hierarchy fetch returned success:false",
-          response.data
-        );
-        // Fallback to traditional method
-        fetchSpecies();
-      }
-    } catch (error) {
-      console.error("Error fetching species hierarchy:", error);
-      // Fallback to traditional method
-      fetchSpecies();
-    } finally {
-      setIsLoadingSpecies(false);
-    }
-  };
-
-  // Keep the original method as fallback
-  const fetchSpecies = async () => {
-    setIsLoadingSpecies(true);
-    try {
-      console.log("Fetching species data...");
-      const response = await axios.get(POST.GetSpecies, {
-        headers: {
-          Authorization: `Bearer ${user?.sessionToken || ""}`,
-          userid: user?.id || "",
-        },
-      });
-
-      if (response.data.success) {
-        console.log("Species data received:", response.data.species);
-        setSpecies(response.data.species);
-      } else {
-        console.warn("Species fetch returned success:false", response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching species:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Failed to fetch species. Please try again.",
-      });
-    } finally {
-      setIsLoadingSpecies(false);
-    }
-  };
-
-  const fetchBreeds = async (speciesName) => {
-    if (!speciesName) return;
-
-    setIsLoadingBreeds(true);
-    try {
-      console.log(`Fetching breeds for species: ${speciesName}`);
-      const response = await axios.get(POST.Breeds(speciesName), {
-        headers: {
-          Authorization: `Bearer ${user?.sessionToken || ""}`,
-          userid: user?.id || "",
-        },
-      });
-
-      if (response.data.success) {
-        console.log("Breeds data received:", response.data.breeds);
-        setBreeds(response.data.breeds || []);
-      } else {
-        console.warn("Breeds fetch returned success:false", response.data);
-        setBreeds([]);
-      }
-    } catch (error) {
-      console.error("Error fetching breeds:", error);
-      setBreeds([]);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Failed to fetch breeds. Please try again.",
-      });
-    } finally {
-      setIsLoadingBreeds(false);
-    }
-  };
+  }, [availableBreeds, formData.species, speciesHierarchy]);
 
   // Add a new function to compress images before upload
   const compressImage = (imageDataUrl) => {
@@ -268,8 +191,6 @@ const CreatePost = () => {
     const { name, value, type, checked } = e.target;
 
     if (name === "species") {
-      const selectedSpecies = species.find((s) => s.name === value);
-      setSelectedSpecies(selectedSpecies);
       // Reset breed when changing species
       setFormData((prev) => ({
         ...prev,
@@ -358,7 +279,6 @@ const CreatePost = () => {
         type: formData.isNegotiable ? "paid" : "free",
         category: formData.breed,
         species: formData.species,
-        userId: user.id,
         addressId: selectedAddress._id,
         images: compressedImages,
         age: formData.ageValue
@@ -508,7 +428,7 @@ const CreatePost = () => {
           disabled={isLoadingSpecies}
         >
           <option value="">Select Species</option>
-          {species.map((item) => (
+          {(species || []).map((item) => (
             <option key={item._id || item.name} value={item.name}>
               {item.icon && `${item.icon} `}
               {item.displayName || item.name}
@@ -539,7 +459,7 @@ const CreatePost = () => {
           disabled={isLoadingBreeds || !formData.species}
         >
           <option value="">Select Breed</option>
-          {availableBreeds.map((breed) => (
+          {(availableBreeds || []).map((breed) => (
             <option key={breed._id || breed.name} value={breed.name}>
               {breed.name.charAt(0).toUpperCase() + breed.name.slice(1)}
             </option>
@@ -760,13 +680,13 @@ const CreatePost = () => {
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">
               Address Details
             </h3>
-            {user && user.addresses && user.addresses.length > 0 ? (
+            {addresses && addresses.length > 0 ? (
               <div>
                 <h4 className="text-lg font-medium mb-2 text-gray-700">
                   Select an address:
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {user.addresses.map((address) => (
+                  {addresses.map((address) => (
                     <motion.div
                       key={address._id}
                       whileHover={{ scale: 1.03 }}

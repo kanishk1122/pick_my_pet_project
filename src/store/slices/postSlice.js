@@ -33,7 +33,7 @@ export const fetchPosts = createAsyncThunk(
       const response = await axios.get(POST.Filter, {
         params,
         signal,
-        // withCredentials: true,
+        withCredentials: true,
       });
 
       if (!response.data.success) {
@@ -67,7 +67,7 @@ export const createPost = createAsyncThunk(
   async (postData, { rejectWithValue }) => {
     try {
       const response = await axios.post(POST.Create, postData, {
-        // withCredentials: true,
+        withCredentials: true,
       });
 
       if (!response.data.success) {
@@ -90,7 +90,7 @@ export const updatePost = createAsyncThunk(
   async ({ id, postData }, { rejectWithValue }) => {
     try {
       const response = await axios.put(POST.Update(id), postData, {
-        // withCredentials: true,
+        withCredentials: true,
       });
 
       if (!response.data.success) {
@@ -113,7 +113,7 @@ export const deletePost = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await axios.delete(POST.Delete(id), {
-        // withCredentials: true,
+        withCredentials: true,
       });
 
       if (!response.data.success) {
@@ -136,7 +136,7 @@ export const fetchPostById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await axios.get(POST.GetPostById(id), {
-        // withCredentials: true,
+        withCredentials: true,
       });
 
       if (!response.data.success) {

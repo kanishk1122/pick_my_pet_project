@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSwal } from "@utils/Customswal.jsx";
-import { ADDRESS } from "../../Consts/apikeys";
-import axios from "axios";
-import { useUser } from "../../utils/Usercontext"; // Update import
+import { useUser } from "../../utils/Usercontext";
+import { useAddresses } from "../../hooks/useAddresses";
 
-const AddressForm = ({ user }) => {
+const AddressForm = () => {
   const Swal = useSwal();
-  const { fetchUseraddresses } = useUser(); // Get function from context
+  const { user } = useUser();
+  const { addAddress } = useAddresses();
 
   const [formData, setFormData] = useState({
     street: "",
@@ -20,16 +20,14 @@ const AddressForm = ({ user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
 
     try {
-      console.log("User:", user);
-      const response = await axios.post(ADDRESS.Add, {
+      const result = await addAddress({
         userId: user.id,
         ...formData,
       });
 
-      if (response.data.success) {
+      if (result.meta.requestStatus === "fulfilled") {
         Swal.fire({
           icon: "success",
           title: "Success!",
@@ -45,9 +43,8 @@ const AddressForm = ({ user }) => {
           landmark: "",
           isDefault: false,
         });
-
-        // Call fetchUseraddresses with user object
-        await fetchUseraddresses(user);
+      } else {
+        throw new Error(result.payload || "Failed to add address");
       }
     } catch (error) {
       console.error("Address submission error:", error);
