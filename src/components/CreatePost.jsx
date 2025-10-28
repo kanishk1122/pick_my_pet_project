@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../utils/Usercontext";
 import AddressItem from "./User/AddressItem";
-import { POST } from "../Consts/apikeys";
-import axios from "axios";
 import { motion } from "framer-motion";
 import AddressForm from "./User/UpdateAddress";
 import { useSwal } from "@utils/Customswal.jsx";
 import { useSpecies } from "@hooks/useSpecies";
 import { useAddresses } from "@hooks/useAddresses";
+import { usePosts } from "@hooks/usePosts";
 
 const CreatePost = () => {
   const { user } = useUser();
@@ -21,6 +20,8 @@ const CreatePost = () => {
     getBreeds,
   } = useSpecies();
   const { addresses, getAddresses } = useAddresses();
+  const { createPost, loading: createPostLoading } = usePosts();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [selectedImages, setSelectedImages] = useState([]);
   const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
@@ -48,7 +49,6 @@ const CreatePost = () => {
 
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
@@ -212,7 +212,7 @@ const CreatePost = () => {
   };
 
   const handleNewAddressSubmit = async () => {
-    await fetchAndUpdateUserData(user);
+    await getAddresses();
     setShowNewAddressForm(false);
   };
 
@@ -251,7 +251,6 @@ const CreatePost = () => {
       }
 
       // Start loading state
-      setIsSubmitting(true);
       setUploadProgress(10); // Initial progress indication
 
       // Prepare chunked upload for multiple images
@@ -276,7 +275,7 @@ const CreatePost = () => {
         title: formData.petName,
         discription: formData.description,
         amount: formData.price || 0,
-        type: formData.isNegotiable ? "paid" : "free",
+        type: formData.price > 0 ? "paid" : "free",
         category: formData.breed,
         species: formData.species,
         addressId: selectedAddress._id,
@@ -287,35 +286,28 @@ const CreatePost = () => {
               unit: formData.ageUnit,
             }
           : undefined,
+        isNegotiable: formData.isNegotiable,
       };
 
       console.log(`Submitting post with ${compressedImages.length} images`);
       setUploadProgress(40); // Update progress after preparing data
 
       // Simulate progress for image uploads
-      let progressInterval = setInterval(() => {
+      const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
-          const newProgress = prev + 2;
-          return newProgress < 80 ? newProgress : 80;
+          const newProgress = prev + Math.floor(Math.random() * 5) + 1;
+          return newProgress < 95 ? newProgress : 95;
         });
-      }, 1000);
+      }, 500);
 
-      // Make the API call
-      const response = await axios.post(POST.Create, postData, {
-        headers: {
-          Authorization: `Bearer ${user.sessionToken}`,
-          "Content-Type": "application/json",
-          userid: user.id,
-        },
-        // Add timeout for large uploads
-        timeout: 60000, // 60 seconds
-      });
+      // Make the API call using Redux thunk
+      const result = await createPost(postData);
 
       // Clear the interval
       clearInterval(progressInterval);
       setUploadProgress(100); // Complete progress
 
-      if (response.data.success) {
+      if (result.meta.requestStatus === "fulfilled") {
         // Show success message
         Swal.fire({
           icon: "success",
@@ -346,6 +338,12 @@ const CreatePost = () => {
         });
         setSelectedImages([]);
         setSelectedAddress(null);
+      } else {
+        // Handle Redux toolkit rejection
+        const errorMessage =
+          result.payload?.message ||
+          "An unexpected error occurred during post creation.";
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error("Error creating post:", error);
@@ -368,7 +366,6 @@ const CreatePost = () => {
         text: errorMessage,
       });
     } finally {
-      setIsSubmitting(false);
       setUploadProgress(0);
     }
   };
