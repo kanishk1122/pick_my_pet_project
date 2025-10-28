@@ -1,83 +1,60 @@
 import React, { useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { USER } from "../../Consts/apikeys";
 import axios from "axios";
-import { encrypter } from "../../Consts/Functions";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import PropTypes from "prop-types";
-import { useSwal } from "@utils/Customswal.jsx"; // Path to SwalContext
+import { useSwal } from "@utils/Customswal.jsx";
+import { useUser } from "../../utils/Usercontext";
 
 const Googlebutton = ({ authtype }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [referralCode, setReferralCode] = useState("");
-  const Swal = useSwal(); // Use SwalContext
+  const Swal = useSwal();
   const Navigate = useNavigate();
+  const { setUser } = useUser();
+
+  // Configure axios to include cookies
+  axios.defaults.withCredentials = true;
 
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       try {
         fetchUserInfo(tokenResponse.access_token);
-        console.log(tokenResponse.access_token);
       } catch (error) {
-        console.error("Failed to decode token:", error);
+        console.error("Failed to process token:", error);
       }
     },
   });
 
   const fetchUserInfo = async (accessToken) => {
     try {
-      // we done that on server
-      // // 1. Fetch user info from Google using axios
-      // const googleResponse = await axios.get(
-      //   "https://www.googleapis.com/oauth2/v2/userinfo",
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${accessToken}`,
-      //     },
-      //   }
-      // );
-
-      // console.log("Google User Info:", googleResponse.data);
-
-      // 2. Send user info to your server for authentication using axios
       const serverResponse = await axios.post(USER.Auth, {
         token: accessToken,
         referralCode,
-        // userInfo: googleResponse.data, // Optional: Send Google user info if needed
       });
 
-      console.log("Server Response:", serverResponse.status);
+      if (serverResponse?.status === 200 || serverResponse?.status === 201) {
+        // Update user context immediately
+        setUser(serverResponse.data.data.user);
 
-      // 3. Handle server response
-      if (serverResponse?.status == 200 || serverResponse?.status == 201) {
-        // Save session token or other relevant data
-        const stringify = JSON.stringify(serverResponse.data.userdata);
-        const userdata = encrypter(stringify);
-        Cookies.set("Userdata", userdata, { expires: 150 });
-
-        // Provide success feedback to the user
         Swal.fire({
           icon: "success",
           title: "Authentication Successful!",
-          text: serverResponse.data.msg || "Welcome!",
+          text: serverResponse.data.message || "Welcome!",
         }).then(() => {
           Navigate("/");
         });
       } else {
-        throw new Error(serverResponse.data.msg || "Authentication failed.");
+        throw new Error(serverResponse.data.message || "Authentication failed.");
       }
     } catch (error) {
-      // Handle errors during any part of the process
       console.error("Error during Google authentication:", error);
-
-      // Provide meaningful feedback to the user
       Swal.fire({
         icon: "error",
         title: "Oops...",
         text:
-          error.response?.data?.msg ||
+          error.response?.data?.message ||
           "Authentication failed. Please try again.",
       });
     }
@@ -114,6 +91,7 @@ const Googlebutton = ({ authtype }) => {
         placeholder="Referral Code (optional)"
         value={referralCode}
         onChange={(e) => setReferralCode(e.target.value)}
+        className="w-full p-2 mb-3 border border-gray-300 rounded-lg"
       />
       <button
         style={isHovered ? hoverStyle : defaultStyle}
@@ -152,3 +130,4 @@ const Googlebutton = ({ authtype }) => {
 };
 
 export default Googlebutton;
+

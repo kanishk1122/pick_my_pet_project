@@ -1,32 +1,46 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import v1 from "../../assets/video/hsv2.mp4";
 import image from "../../assets/images/pikaso_texttoimage_A-handdrawn-vibrant-outdoor-scene-in-a-peaceful-vi.jpeg";
 import Login from "./Login.jsx";
 import Signup from "./Signup.jsx";
-import { useSwal } from "@utils/Customswal.jsx"; // Path to SwalContext
-import Cookies from "js-cookie";
 import Googlebutton from "./Googlebutton.jsx";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../utils/Usercontext";
 
 const Auth = () => {
-  const Swal = useSwal(); // Use SwalContext
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
   const [authtype, setauthtype] = useState("login");
   const Navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { isAuthenticated, isLoading } = useUser();
 
+  // Redirect if already authenticated
   useEffect(() => {
-    if (Cookies.get("Userdata")) {
-      Navigate("/");
+    if (!isLoading && isAuthenticated) {
+      Navigate("/", { replace: true });
     }
-  }, [Cookies.get("Userdata")]);
+  }, [isAuthenticated, isLoading, Navigate]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // Don't render auth form if user is authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="w-screen h-screen flex justify-center items-center overflow-hidden px-4 md:px-20 py-5 md:py-10">

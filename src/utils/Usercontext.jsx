@@ -1,13 +1,11 @@
-import React, {
+import  {
   createContext,
   useContext,
   useEffect,
   useState,
   useCallback,
-  useMemo,
 } from "react";
 import Cookies from "js-cookie";
-import CryptoJS from "crypto-js";
 import PropTypes from "prop-types";
 import { ADDRESS, USER } from "../Consts/apikeys";
 import axios from "axios";
@@ -17,6 +15,7 @@ const usercontext = createContext();
 export const UserProvide = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [addressPagination, setAddressPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -25,24 +24,61 @@ export const UserProvide = ({ children }) => {
     hasPrevPage: false,
   });
 
-  const fetchUseraddresses = async (userData, page = 1, limit = 10) => {
+  // Configure axios to include cookies in requests
+  axios.defaults.withCredentials = true;
+
+  const checkAuthStatus = useCallback(async () => {
     try {
       setIsLoading(true);
+      const authCookie = Cookies.get("is_authenticated");
+
+      if (authCookie === "true") {
+        // Verify token with backend
+        const response = await axios.get(USER.VerifyToken);
+
+        if (response.data.success) {
+          const userData = response.data.data.user;
+          setUser(userData);
+          setIsAuthenticated(true);
+
+          // Fetch additional user data
+          if (userData.id) {
+            fetchUseraddresses(userData);
+          }
+        } else {
+          handleAuthFailure();
+        }
+      } else {
+        // No auth cookie, user is not authenticated
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error("Auth check error:", error);
+      handleAuthFailure();
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleAuthFailure = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    // Clear all auth-related cookies
+    Cookies.remove("is_authenticated");
+    Cookies.remove("auth_token");
+  };
+
+  const fetchUseraddresses = async (userData, page = 1, limit = 10) => {
+    try {
       if (!userData?.id) {
         console.error("No valid user ID available");
         return;
       }
 
       const response = await axios.get(
-        `${ADDRESS.Get(userData.id)}?page=${page}&limit=${limit}`,
-        {
-          headers: {
-            Authorization: `Bearer ${userData.sessionToken}`,
-            userid: userData.id,
-          },
-        }
+        `${ADDRESS.Get(userData.id)}?page=${page}&limit=${limit}`
       );
-      console.log("Address fetch response:", response.data);
 
       if (response?.data?.success) {
         setUser((prev) => ({
@@ -56,82 +92,55 @@ export const UserProvide = ({ children }) => {
         "Error fetching addresses:",
         error.response?.data || error.message
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const fetchAndUpdateUserData = useCallback(async (user) => {
-    if (user && user.id) {
-      try {
-        const response = await axios.get(`${USER.FetchUser}/${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${user.sessionToken}`,
-            userid: user.id,
-          },
-        });
-        if (response.data.success) {
-          const updatedUser = response.data.user;
-          setUser(updatedUser);
-
-          // Encrypt and save to cookie
-          const encryptedUser = CryptoJS.AES.encrypt(
-            JSON.stringify(updatedUser),
-            import.meta.env.VITE_REACT_APP_CRYPTO_KEY
-          ).toString();
-          Cookies.set("Userdata", encryptedUser, { expires: 150 });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
+  const updateUserAfterAuth = useCallback((userData) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    if (userData) {
+      fetchUseraddresses(userData);
     }
   }, []);
 
-  const getUserheader = () => {
-    return {
-      headers: {
-        Authorization: `Bearer ${user.sessionToken}`,
-        userid: user.id,
-      },
-    };
-  };
-
-  useEffect(() => {
+  const logout = useCallback(async () => {
     try {
-      const userdata = Cookies.get("Userdata");
-      if (userdata) {
-        const decryptdata = CryptoJS.AES.decrypt(
-          userdata,
-          import.meta.env.VITE_REACT_APP_CRYPTO_KEY
-        ).toString(CryptoJS.enc.Utf8);
-
-        if (decryptdata && decryptdata.trim()) {
-          const userData = JSON.parse(decryptdata);
-          setUser(userData);
-          fetchUseraddresses(userData);
-          fetchAndUpdateUserData(userData);
-        } else {
-          // Invalid or empty decrypted data, remove the cookie
-          Cookies.remove("Userdata");
-        }
-      }
+      await axios.post(USER.Logout);
     } catch (error) {
-      console.error("Error initializing user:", error);
-      // Remove corrupted cookie
-      Cookies.remove("Userdata");
+      console.error("Logout error:", error);
     } finally {
-      setIsLoading(false);
+      handleAuthFailure();
+      // Redirect to auth page
+      window.location.href = "/auth";
     }
   }, []);
+
+  // Check auth status on mount and when cookies change
+  useEffect(() => {
+    checkAuthStatus();
+
+    // Listen for cookie changes (when user logs in from another tab)
+    const interval = setInterval(() => {
+      const authCookie = Cookies.get("is_authenticated");
+      if (authCookie === "true" && !isAuthenticated) {
+        checkAuthStatus();
+      } else if (authCookie !== "true" && isAuthenticated) {
+        handleAuthFailure();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [checkAuthStatus, isAuthenticated]);
 
   const value = {
     user,
-    setUser,
-    fetchUseraddresses,
+    setUser: updateUserAfterAuth,
+    isAuthenticated,
     isLoading,
+    fetchUseraddresses,
     addressPagination,
-    fetchAndUpdateUserData,
-    getUserheader,
+    logout,
+    checkAuthStatus,
   };
 
   if (isLoading) {
@@ -144,6 +153,7 @@ export const UserProvide = ({ children }) => {
 
   return <usercontext.Provider value={value}>{children}</usercontext.Provider>;
 };
+
 UserProvide.propTypes = {
   children: PropTypes.node.isRequired,
 };

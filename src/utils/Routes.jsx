@@ -12,6 +12,7 @@ import FreePetList from "../components/Pet/FreePetList.jsx";
 import PaidPetList from "../components/Pet/PaidPetList.jsx";
 import PetViewer from "../components/Pet/PetViewer.jsx";
 import FilteredPetList from "../components/Pet/FilteredPetList.jsx";
+import {USER} from  "../Consts/apikeys.js"
 
 function App() {
   const [user, setUser] = useState(null);
@@ -19,7 +20,7 @@ function App() {
   useEffect(() => {
     // Fetch user data from backend
     async function fetchUser() {
-      const response = await axios.get("/api/user");
+      const response = await axios.get(USER.GetUser);
       setUser(response.data);
     }
     fetchUser();

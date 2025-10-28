@@ -3,16 +3,19 @@ const USERPath = "users/";
 const Authpath = "auth/";
 
 const USER = {
-  Login: baseurl + USERPath + "login/",
-  Register: baseurl + USERPath,
-  GetUser: baseurl + USERPath + "getuser/",
+  Login: baseurl + Authpath + "login",
+  Register: baseurl + Authpath + "register",
+  Auth: baseurl + Authpath + "google-auth",
+  Logout: baseurl + Authpath + "logout",
+  VerifyToken: baseurl + Authpath + "verify-token",
+  GetUser: baseurl + USERPath ,
   EmailConfrimgenraterZXcv: baseurl + USERPath + "confirmationgenrate/",
   EmailConfrim: baseurl + USERPath + "confirmation/",
-  Auth: baseurl + Authpath + "google-auth",
   Update: baseurl + USERPath + "update",
   FetchUser: baseurl + USERPath + "fetch-user",
   GenerateReferralLink: (userId) =>
     `${baseurl}users/generate-referral-link/${userId}`,
+  
 };
 
 export { USER };
@@ -24,20 +27,23 @@ export const ADDRESS = {
   Delete: (addressId) => `${baseurl}address/delete/${addressId}`,
 };
 
+const postBaseUrl = `${baseurl}posts`;
+
 export const POST = {
-  Create: `${baseurl}post/create`,
-  GetAll: `${baseurl}post/all`,
-  GetOne: (id) => `${baseurl}post/${id}`,
-  Update: (id) => `${baseurl}post/update/${id}`,
-  Delete: (id) => `${baseurl}post/delete/${id}`,
-  GetUserPosts: `${baseurl}post/user`,
-  Filter: `${baseurl}post/filter`,
-  GetFree: `${baseurl}post/free`,
-  GetPaid: `${baseurl}post/paid`,
-  Breeds: `${baseurl}post/breeds`,
+  Base: postBaseUrl,
+  Create: postBaseUrl,
+  GetAll: postBaseUrl,
+  GetOne: (id) => `${postBaseUrl}/${id}`,
+  Update: (id) => `${postBaseUrl}/${id}`,
+  Delete: (id) => `${postBaseUrl}/${id}`,
+  GetUserPosts: `${postBaseUrl}/user-posts`,
+  Filter: `${postBaseUrl}/filter`,
+  GetFree: `${postBaseUrl}/free`, // Assuming this is a filter
+  GetPaid: `${postBaseUrl}/paid`, // Assuming this is a filter
+  Breeds: (species) => `${baseurl}breeds/species/${species}`,
   GetSpecies: `${baseurl}species`,
   GetBreeds: `${baseurl}breeds`,
   SpeciesHierarchy: `${baseurl}species/hierarchy`,
-  GetPostById: `${baseurl}post`,
-  GetPostBySlug: (slug) => `${baseurl}post/slug/${slug}`,
+  GetPostById: (id) => `${postBaseUrl}/${id}`,
+  GetPostBySlug: (slug) => `${postBaseUrl}/slug/${slug}`,
 };

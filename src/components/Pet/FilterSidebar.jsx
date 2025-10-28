@@ -27,7 +27,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
 
       try {
         setIsLoadingBreeds(true);
-        const response = await axios.get(`${POST.Breeds}/${filters.species}`);
+        const response = await axios.get(POST.Breeds(filters.species));
         if (response.data.success) {
           console.log("Breeds data:", response.data.breeds);
           setBreeds(response.data.breeds);

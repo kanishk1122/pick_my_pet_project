@@ -33,6 +33,7 @@ export const fetchPosts = createAsyncThunk(
       const response = await axios.get(POST.Filter, {
         params,
         signal,
+        // withCredentials: true,
       });
 
       if (!response.data.success) {
@@ -65,7 +66,9 @@ export const createPost = createAsyncThunk(
   "posts/createPost",
   async (postData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(POST.Create, postData);
+      const response = await axios.post(POST.Create, postData, {
+        // withCredentials: true,
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to create post");
@@ -86,7 +89,9 @@ export const updatePost = createAsyncThunk(
   "posts/updatePost",
   async ({ id, postData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${POST.Update}/${id}`, postData);
+      const response = await axios.put(POST.Update(id), postData, {
+        // withCredentials: true,
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to update post");
@@ -107,7 +112,9 @@ export const deletePost = createAsyncThunk(
   "posts/deletePost",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`${POST.Delete}/${id}`);
+      const response = await axios.delete(POST.Delete(id), {
+        // withCredentials: true,
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to delete post");
@@ -128,7 +135,9 @@ export const fetchPostById = createAsyncThunk(
   "posts/fetchPostById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${POST.GetById}/${id}`);
+      const response = await axios.get(POST.GetPostById(id), {
+        // withCredentials: true,
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch post");

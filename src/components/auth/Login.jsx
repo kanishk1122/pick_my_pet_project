@@ -1,12 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Custominputfields, { Passwordcustomfiled } from "../Custominputfields";
-import { useSwal } from "@utils/Customswal.jsx"; // Path to SwalContext
+import { useSwal } from "@utils/Customswal.jsx";
 import { USER } from "@Consts/apikeys";
 import axios from "axios";
-import { encrypter } from "@Consts/Functions";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../utils/Usercontext";
 
 const Login = ({
   email,
@@ -22,46 +21,35 @@ const Login = ({
 }) => {
   const Swal = useSwal();
   const navigate = useNavigate();
+  const { setUser } = useUser();
+
+  // Configure axios to include cookies
+  axios.defaults.withCredentials = true;
 
   function loginUser(email, password) {
-    const encryptedPassword = encrypter(password);
-
     axios
       .post(`${USER.Login}`, {
         email: email,
-        password: encryptedPassword,
+        password: password, // Remove encryption, handle on backend
+        withCredentials: true,
       })
       .then((response) => {
-        if (response.status == 201) {
-          console.log(response.data.userdata.status);
+        if (response.status === 200) {
           Swal.fire({
             icon: "success",
             title: "Welcome",
-            text: `${
-              !response.data.userdata.status == "email_confirm"
-                ? "Please check your email for confirmation link"
-                : "Login Successful"
-            }`,
+            text: "Login Successful",
+          }).then(() => {
+            // Update user context with response data
+            setUser(response.data.data.user);
+            navigate("/");
           });
-          try {
-            const stringify = JSON.stringify(response.data.userdata);
-            const userdata = encrypter(stringify);
-            Cookies.set("Userdata", userdata, { expires: 150 });
-          } catch (error) {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Something went wrong",
-            });
-          }
-          // navigate("/");
-          windlow.location.href = "/";
         }
       })
       .catch((error) => {
         console.log(error, "this is error");
         Swal.fire({
-          title: error?.response?.data?.msg,
+          title: error?.response?.data?.message || "Login failed",
           icon: "error",
         });
       });

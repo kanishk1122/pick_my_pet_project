@@ -73,10 +73,11 @@ const CreatePost = () => {
     setIsLoadingSpecies(true);
     try {
       console.log("Fetching species hierarchy...");
-      const response = await axios.get(`${POST.GetSpecies}/hierarchy`, {
+      const response = await axios.get(POST.SpeciesHierarchy, {
         headers: {
           Authorization: `Bearer ${user?.sessionToken || ""}`,
           userid: user?.id || "",
+          "Content-Type": "application/json",
         },
       });
 
@@ -106,7 +107,7 @@ const CreatePost = () => {
     setIsLoadingSpecies(true);
     try {
       console.log("Fetching species data...");
-      const response = await axios.get(`${POST.GetSpecies}`, {
+      const response = await axios.get(POST.GetSpecies, {
         headers: {
           Authorization: `Bearer ${user?.sessionToken || ""}`,
           userid: user?.id || "",
@@ -137,7 +138,7 @@ const CreatePost = () => {
     setIsLoadingBreeds(true);
     try {
       console.log(`Fetching breeds for species: ${speciesName}`);
-      const response = await axios.get(`${POST.GetBreeds}/${speciesName}`, {
+      const response = await axios.get(POST.Breeds(speciesName), {
         headers: {
           Authorization: `Bearer ${user?.sessionToken || ""}`,
           userid: user?.id || "",
