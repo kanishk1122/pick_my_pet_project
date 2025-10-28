@@ -9,11 +9,12 @@ import Cookies from "js-cookie";
 import PropTypes from "prop-types";
 import { USER } from "../Consts/apikeys";
 import axios from "axios";
+import { useAuth } from "@hooks/useAuth";
 
 const usercontext = createContext();
 
 export const UserProvide = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const { user, setUser, loading, logout: reduxLogout } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -31,7 +32,7 @@ export const UserProvide = ({ children }) => {
 
         if (response.data.success) {
           const userData = response.data.data.user;
-          setUser(userData);
+          setUser(userData); // Set user in Redux store
           setIsAuthenticated(true);
         } else {
           handleAuthFailure();
@@ -47,7 +48,7 @@ export const UserProvide = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setUser]);
 
   const handleAuthFailure = () => {
     setUser(null);
@@ -57,10 +58,13 @@ export const UserProvide = ({ children }) => {
     Cookies.remove("auth_token");
   };
 
-  const updateUserAfterAuth = useCallback((userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-  }, []);
+  const updateUserAfterAuth = useCallback(
+    (userData) => {
+      setUser(userData); // Set user in Redux store
+      setIsAuthenticated(true);
+    },
+    [setUser]
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -68,11 +72,11 @@ export const UserProvide = ({ children }) => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      handleAuthFailure();
+      reduxLogout(); // Use Redux logout
       // Redirect to auth page
       window.location.href = "/auth";
     }
-  }, []);
+  }, [reduxLogout]);
 
   // Check auth status on mount and when cookies change
   useEffect(() => {
@@ -95,7 +99,7 @@ export const UserProvide = ({ children }) => {
     user,
     setUser: updateUserAfterAuth,
     isAuthenticated,
-    isLoading,
+    isLoading: isLoading || loading,
     logout,
     checkAuthStatus,
   };

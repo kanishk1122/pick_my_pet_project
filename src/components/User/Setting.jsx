@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../../utils/Usercontext";
 import { useSwal } from "@utils/Customswal.jsx";
-import { USER } from "../../Consts/apikeys";
-import axios from "axios";
+import { useAuth } from "@hooks/useAuth";
 
 const Setting = () => {
-  const { user, fetchAndUpdateUserData } = useUser();
-  const [loading , setLoading] = useState(false);
+  const { user: contextUser, checkAuthStatus } = useUser();
+  const { user, loading, updateUser } = useAuth();
   const Swal = useSwal();
   const [formData, setFormData] = useState({
     firstname: "",
@@ -18,12 +17,10 @@ const Setting = () => {
   });
   const [charCount, setCharCount] = useState(0);
   const [profilePic, setProfilePic] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     if (user) {
-      console.log("Current user data:", user); // Debug log
       setFormData({
         firstname: user.firstname || "",
         lastname: user.lastname || "",
@@ -32,6 +29,8 @@ const Setting = () => {
         about: user.about || "",
         profilePic: user.profilePic || null,
       });
+      setCharCount(user.about?.length || 0);
+      setImagePreview(user.userpic || null);
     }
   }, [user]);
 
@@ -57,18 +56,18 @@ const Setting = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-
       if (!user || !user.id) {
         throw new Error("User ID not found");
       }
 
       const updateData = {
         ...formData,
-        userId: user.id,
       };
+
+      // Remove profilePic from form data as it's handled separately
+      delete updateData.profilePic;
 
       // Remove empty fields
       Object.keys(updateData).forEach((key) => {
@@ -82,29 +81,23 @@ const Setting = () => {
         updateData.profilePic = base64;
       }
 
-      const response = await axios.put(USER.Update, updateData, {
-        headers: {
-          Authorization: `Bearer ${user.sessionToken}`,
-          "Content-Type": "application/json",
-          userid: user.id,
-        },
-      });
+      const result = await updateUser(updateData);
 
-      if (response.data.success) {
-        Swal.fire("Success", "Profile updated successfully", "success").then(async () => {
-          await fetchAndUpdateUserData(user);
-        });
-        Swal.fire("Success", "Profile updated successfully", "success");
-        setLoading(false);
+      if (result.meta.requestStatus === "fulfilled") {
+        Swal.fire("Success", "Profile updated successfully", "success").then(
+          () => {
+            checkAuthStatus(); // Re-fetch user data in context if needed
+          }
+        );
       } else {
-        throw new Error(response.data.message || "Update failed");
+        console.error("Update failed:", result);
+        throw new Error(result.payload || "Update failed");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
       Swal.fire(
         "Error",
-        "Failed to update profile: " +
-          (error.response?.data?.message || error.message),
+        "Failed to update profile: " + (error.message || "Unknown error"),
         "error"
       );
     }
@@ -198,7 +191,9 @@ const Setting = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Phone
+          </label>
           <input
             type="tel"
             name="phone"
@@ -229,50 +224,48 @@ const Setting = () => {
           <button
             type="submit"
             disabled={loading}
-
             className="group w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 flex items-center justify-center"
           >
-          {loading ? (
-            <svg
-              className="animate-spin h-5 w-5 text-white mr-3 mt-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25 "
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V2.83a1 1 0 012 0V4a8 8 0 018 8h1.17a1 1 0 010 2H20a8 8 0 01-8 8v1.17a1 1 0 01-2 0V20a8 8 0 01-8-8H4a1 1 0 010-2h1.17a1 1 0 010-2H4z"
-              ></path>
-            </svg>
-          ) : ( <>
-          Update Profile
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 ml-2 group-hover:ml-3 duration-200"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            {loading ? (
+              <svg
+                className="animate-spin h-5 w-5 text-white mr-3"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
               >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-                />
-            </svg>
-                </> 
-          )}
-            
-          
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            ) : (
+              <>
+                Update Profile
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 ml-2 group-hover:ml-3 duration-200"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </>
+            )}
           </button>
         </div>
       </form>

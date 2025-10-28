@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import postReducer from "./slices/postSlice";
 import speciesReducer from "./slices/speciesSlice";
 import addressReducer from "./slices/addressSlice";
+import userReducer from "./slices/userSlice";
 
 // Configure the store
 export const store = configureStore({
@@ -10,6 +11,7 @@ export const store = configureStore({
     posts: postReducer,
     species: speciesReducer,
     addresses: addressReducer,
+    user: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

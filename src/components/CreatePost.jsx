@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useUser } from "../utils/Usercontext";
+import { useState, useEffect } from "react";
 import AddressItem from "./User/AddressItem";
 import { motion } from "framer-motion";
 import AddressForm from "./User/UpdateAddress";
@@ -9,7 +8,6 @@ import { useAddresses } from "@hooks/useAddresses";
 import { usePosts } from "@hooks/usePosts";
 
 const CreatePost = () => {
-  const { user } = useUser();
   const Swal = useSwal();
   const {
     species,
@@ -20,8 +18,7 @@ const CreatePost = () => {
     getBreeds,
   } = useSpecies();
   const { addresses, getAddresses } = useAddresses();
-  const { createPost, loading: createPostLoading } = usePosts();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createPost, loading: isSubmitting } = usePosts();
 
   const [selectedImages, setSelectedImages] = useState([]);
   const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
@@ -138,7 +135,6 @@ const CreatePost = () => {
     // Show loading state
     if (files.length > 0) {
       setUploadProgress(10);
-      setIsSubmitting(true);
     }
 
     let processed = 0;
@@ -158,7 +154,6 @@ const CreatePost = () => {
           // Reset loading state when all files are processed
           if (processed === files.length) {
             setTimeout(() => {
-              setIsSubmitting(false);
               setUploadProgress(0);
             }, 500);
           }
@@ -172,7 +167,6 @@ const CreatePost = () => {
 
           processed++;
           if (processed === files.length) {
-            setIsSubmitting(false);
             setUploadProgress(0);
           }
         }

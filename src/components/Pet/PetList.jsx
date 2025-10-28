@@ -145,6 +145,7 @@ const PetList = () => {
             {/* Pet List */}
             <FilteredPetList
               posts={posts}
+              viewMode={viewMode}
               pageInfo={pageInfo}
               onPageChange={handlePageChange}
             />

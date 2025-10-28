@@ -11,7 +11,7 @@ const USER = {
   GetUser: baseurl + USERPath,
   EmailConfrimgenraterZXcv: baseurl + USERPath + "confirmationgenrate/",
   EmailConfrim: baseurl + USERPath + "confirmation/",
-  Update: baseurl + USERPath + "update",
+  Update: baseurl + USERPath + "profile/me",
   FetchUser: baseurl + USERPath + "fetch-user",
   GenerateReferralLink: (userId) =>
     `${baseurl}users/generate-referral-link/${userId}`,

@@ -75,7 +75,7 @@ const Index = () => {
         // Apply the backdrop-filter and other styles on scroll down
         gsap.to(navRef.current, {
           backgroundColor: "rgba(15, 23, 42, 0.0)", // Darker background
-          
+
           duration: 0.2,
           marginTop: `-${35}px`,
           color: "white",
@@ -166,10 +166,7 @@ const Index = () => {
           </Link>
 
           <div className="flex items-center gap-6">
-            <ul
-              className="hidden md:flex items-center space-x-2 text-base font-medium  px-4 py-2 rounded-2xl  "
-              
-            >
+            <ul className="hidden md:flex items-center space-x-2 text-base font-medium  px-4 py-2 rounded-2xl  ">
               {[
                 {
                   route: "pets",
@@ -184,9 +181,7 @@ const Index = () => {
                   color: "hover:text-blue-400",
                 },
               ].map((item, index) => (
-                <Link
-                  key={index}
-                >
+                <Link key={index}>
                   <Link
                     to={`/${item.route}`}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl hover:bg-zinc-500/50 bg-zinc-300/50 backdrop-blur-md transition-all duration-300 text-black ${item.color}`}
@@ -242,6 +237,7 @@ const Menu = () => {
               src={user?.userpic}
               className="w-full h-full object-cover  rounded-full "
               alt=""
+              referrerPolicy="no-referrer"
             />
           ) || user?.firstname?.[0]}
         </div>
