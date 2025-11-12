@@ -4,7 +4,6 @@ import AddressActions from "./AddressActions";
 import Custominputfields from "../Custominputfields";
 
 const ProfilePage = ({ user }) => {
- 
   const [userpic, setUserpic] = useState(user?.userpic);
   const [firstname, setFirstName] = useState();
   const [lastname, setLastName] = useState();
@@ -25,7 +24,6 @@ const ProfilePage = ({ user }) => {
     },
   ]);
 
-  // Update useEffect to handle multiple addresses
   useEffect(() => {
     if (user) {
       setFirstName(user.firstname);
@@ -42,82 +40,61 @@ const ProfilePage = ({ user }) => {
   }, [user]);
 
   return (
-    <div className="w-[78vw]">
+    <div className="w-full md:w-[78vw] px-4 md:px-0">
       <div className="flex w-full items-center flex-col">
-        <h1 className="text-4xl text-start pl-20 mt-10 w-full border-b pb-2 border-black font-bold">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl text-start pl-4 md:pl-20 mt-6 md:mt-10 w-full border-b pb-2 border-black font-bold">
           Personal Information
         </h1>
-        <div className="w-full gap-10 flex pl-20 pt-3 relative pb-3 border-b border-black">
-          <div className="size-[100px] relative rounded-full overflow-hidden w-fit ">
+        
+        <div className="w-full gap-4 md:gap-10 flex flex-col md:flex-row pl-4 md:pl-20 pt-3 relative pb-3 border-b border-black">
+          <div className="size-[80px] md:size-[100px] relative rounded-full overflow-hidden w-fit mx-auto md:mx-0">
             <img
               src={user?.userpic}
-              className="size-[100px] rounded-full"
-              alt=""
+              className="size-[80px] md:size-[100px] rounded-full object-cover"
+              alt="User profile"
             />
           </div>
-          <div className="w-[70%]">
-            <p className="text-4xl font-semibold">About me</p>
+          
+          <div className="w-full md:w-[70%]">
+            <p className="text-2xl md:text-4xl font-semibold mb-2">About me</p>
             <textarea
               name=""
               value={
                 user?.about
-                  ? user.about.replace(/\*\*(.*?)\*\*/g, '$1').split('**').map((text, i) => 
-                      i % 2 === 0 ? text : <strong key={i}>{text}</strong>)
+                  ? user.about.replace(/\*\*(.*?)\*\*/g, '$1')
                   : "didn't get so much yet about you"
               }
-              className="w-full h-[32vh] resize-none focus:ring-0 focus:outline-none"
+              className="w-full h-[20vh] md:h-[32vh] resize-none focus:ring-0 focus:outline-none text-sm md:text-base"
               readOnly
               id=""
             ></textarea>
           </div>
         </div>
-        <div className="flex w-full  justify-around">
-          <div className="w-1/3">
-            <Custominputfields
-              name="First Name"
-              type="text"
-              from="firstname"
-              getter={firstname}
-              setter={""}
-              disabled={true}
-            />
+        
+        <div className="flex flex-col md:flex-row w-full justify-around gap-6 md:gap-0 px-4 md:px-20 mt-6 md:mt-4">
+          <div className="w-full md:w-1/3">
+            <p className="text-sm text-gray-600 font-medium mb-1">First Name</p>
+            <p className="text-lg md:text-xl font-semibold">{firstname || "Not Provided"}</p>
           </div>
-          <div className="w-1/3">
-            <Custominputfields
-              name="Last Name"
-              type="text"
-              from="lastname"
-              getter={lastname}
-              setter={""}
-              disabled={true}
-            />
+          <div className="w-full md:w-1/3">
+            <p className="text-sm text-gray-600 font-medium mb-1">Last Name</p>
+            <p className="text-lg md:text-xl font-semibold">{lastname || "Not Provided"}</p>
           </div>
         </div>
-        <div className="flex w-full  justify-around mt-2">
-          <div className="w-1/3">
-            <Custominputfields
-              name="Email"
-              type="email"
-              from="email"
-              getter={email}
-              setter={""}
-              disabled={true}
-            />
+        
+        <div className="flex flex-col md:flex-row w-full justify-around gap-6 md:gap-0 px-4 md:px-20 mt-6 md:mt-4">
+          <div className="w-full md:w-1/3">
+            <p className="text-sm text-gray-600 font-medium mb-1">Email</p>
+            <p className="text-lg md:text-xl font-semibold break-words">{email || "Not Provided"}</p>
           </div>
-          <div className="w-1/3">
-            <Custominputfields
-              name="Phone"
-              type="text"
-              from="phone"
-              getter={phone}
-              setter={""}
-              disabled={true}
-            />
+          <div className="w-full md:w-1/3">
+            <p className="text-sm text-gray-600 font-medium mb-1">Phone</p>
+            <p className="text-lg md:text-xl font-semibold">{phone}</p>
           </div>
         </div>
 
-        <div className="w-full mt-4 flex items-start justify-around flex-wrap">
-          <AddressActions  />
+        <div className="w-full mt-4 flex items-start justify-around flex-wrap px-4 md:px-0">
+          <AddressActions />
         </div>
       </div>
     </div>

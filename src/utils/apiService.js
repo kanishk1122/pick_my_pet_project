@@ -15,6 +15,7 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Always send cookies
 });
 
 /**
@@ -51,6 +52,8 @@ apiClient.interceptors.request.use(
       config.headers["userid"] = user.id;
     }
 
+    console.log("API Request:", config.method?.toUpperCase(), config.url);
+
     return config;
   },
   (error) => {
@@ -70,6 +73,8 @@ apiClient.interceptors.response.use(
       console.warn("Authentication error:", error.response.data);
       // Optional: clear invalid session
       // Cookies.remove('Userdata');
+      localStorage.removeItem("user");
+      window.location.href = "/auth";
     }
 
     return Promise.reject(error);

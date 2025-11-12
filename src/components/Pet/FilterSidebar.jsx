@@ -123,23 +123,23 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
   };
 
   return (
-    <motion.div
-      initial={{ x: -300 }}
-      animate={{ x: 0 }}
-      className="w-[260px] h-full pt-10 min-h-screen bg-transparent"
-    >
-      <h2 className="text-2xl font-bold mb-6 text-green-600 text-center">
-        Filter Pets
-      </h2>
-      <ul className="w-full justify-center items-center flex flex-col gap-4 mt-2 px-3">
+    <div className="w-full">
+      <div className="flex items-center justify-center mb-6 pb-4 border-b-2 border-green-200">
+        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">
+          🔍 Filter Pets
+        </h2>
+      </div>
+      <div className="space-y-4">
         {/* Species Selection */}
-        <li className="w-full">
-          <label className="block text-sm font-medium mb-1">Species</label>
+        <div>
+          <label className="block text-sm font-semibold mb-2 text-gray-700">
+            Species
+          </label>
           <select
             name="species"
             value={filters.species}
             onChange={handleInputChange}
-            className="brand-button w-full h-full flex justify-center gap-3 items-center"
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none bg-white hover:border-green-300"
           >
             <option value="">All Species</option>
             <option value="dog">Dog</option>
@@ -147,18 +147,20 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
             <option value="bird">Bird</option>
             <option value="other">Other</option>
           </select>
-        </li>
+        </div>
 
         {/* Breed Selection - Only shows when species is selected */}
         {filters.species && (
-          <li className="w-full">
-            <label className="block text-sm font-medium mb-1">Breed</label>
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">
+              Breed
+            </label>
             <select
               name="breed"
               value={filters.breed}
               onChange={handleInputChange}
               disabled={isLoadingBreeds}
-              className="brand-button w-full h-full flex justify-center gap-3 items-center"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none bg-white hover:border-green-300 disabled:bg-gray-100"
             >
               <option value="">All Breeds</option>
               {isLoadingBreeds ? (
@@ -171,34 +173,40 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                 ))
               )}
             </select>
-          </li>
+          </div>
         )}
 
         {/* Type Selection (Free/Paid) */}
-        <li className="w-full">
-          <label className="block text-sm font-medium mb-1">Category</label>
+        <div>
+          <label className="block text-sm font-semibold mb-2 text-gray-700">
+            Category
+          </label>
           <select
             name="type"
             value={filters.type}
             onChange={handleInputChange}
-            className="brand-button w-full h-full flex justify-center gap-3 items-center"
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none bg-white hover:border-green-300"
           >
             <option value="">All Categories</option>
             <option value="free">Adoption</option>
             <option value="paid">Sale</option>
           </select>
-        </li>
+        </div>
 
         {/* Show price range only if type is 'paid' */}
         {filters.type !== "free" && (
-          <li className="w-full">
-            <label className="block text-sm font-medium mb-1">
+          <div>
+            <label className="block text-sm font-semibold mb-3 text-gray-700">
               Price Range
             </label>
-            <div className="px-2">
-              <div className="flex justify-between mb-2">
-                <span>{formatPrice(filters.minPrice)}</span>
-                <span>{formatPrice(filters.maxPrice)}</span>
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm font-medium text-gray-700">
+                <span className="text-green-600">
+                  {formatPrice(filters.minPrice)}
+                </span>
+                <span className="text-blue-600">
+                  {formatPrice(filters.maxPrice)}
+                </span>
               </div>
               <div className="relative h-1 bg-gray-200 rounded-full">
                 <div
@@ -252,20 +260,18 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                 />
               </div>
             </div>
-          </li>
+          </div>
         )}
 
         {/* Apply Filters Button */}
-        <li className="w-full">
-          <button
-            onClick={() => onFilterChange(filters)}
-            className="brand-button w-full h-full flex justify-center gap-3 items-center bg-green-500 hover:text-white duration-200 hover:bg-green-600"
-          >
-            Apply Filters
-          </button>
-        </li>
-      </ul>
-    </motion.div>
+        <button
+          onClick={() => onFilterChange(filters)}
+          className="w-full mt-6 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold py-3 rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        >
+          Apply Filters
+        </button>
+      </div>
+    </div>
   );
 };
 

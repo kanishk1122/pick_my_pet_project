@@ -45,6 +45,21 @@ const NavIcons = {
       <path d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" />
     </svg>
   ),
+  Menu: () => (
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+    </svg>
+  ),
+  Close: () => (
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+    </svg>
+  ),
+  Home: () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
+    </svg>
+  ),
 };
 
 const Index = () => {
@@ -54,6 +69,7 @@ const Index = () => {
   const menuItemsRef = useRef([]);
   const { user } = useUser();
   const [userdete, setuserdete] = useState(undefined);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,16 +88,14 @@ const Index = () => {
       start: "top top",
       end: "+=500",
       onEnter: () => {
-        // Apply the backdrop-filter and other styles on scroll down
         gsap.to(navRef.current, {
-          backgroundColor: "rgba(15, 23, 42, 0.0)", // Darker background
-
+          backgroundColor: "rgba(15, 23, 42, 0.0)",
           duration: 0.2,
           marginTop: `-${35}px`,
           color: "white",
           padding: "0 0px",
           height: "60px",
-          ease: "power3.out", // Set the desired blur
+          ease: "power3.out",
         });
         gsap.to(menuRef.current, {
           backdropFilter: "none",
@@ -90,9 +104,8 @@ const Index = () => {
         });
       },
       onLeaveBack: () => {
-        // Reset styles when scrolling back up
         gsap.to(navRef.current, {
-          backgroundColor: "rgba(15, 23, 42, 0.0)", // Slightly transparent dark background
+          backgroundColor: "rgba(15, 23, 42, 0.0)",
           borderBottom: "none",
           duration: 0.2,
           marginTop: 0,
@@ -100,14 +113,13 @@ const Index = () => {
         });
 
         gsap.to(menuRef.current, {
-          backdropFilter: "blur(5px)", // Apply blur effect
+          backdropFilter: "blur(5px)",
           duration: 0.2,
           ease: "power3.out",
         });
       },
     });
 
-    // Logo entrance animation
     gsap.from(logoRef.current, {
       duration: 1,
       y: -100,
@@ -115,12 +127,11 @@ const Index = () => {
       ease: "power3.out",
     });
 
-    // Menu item entrance animations
     menuItemsRef.current.forEach((item) => {
       gsap.from(item, {
         duration: 1,
         y: -50,
-        opacity: 0, // Start invisible for better entrance effect
+        opacity: 0,
         ease: "power3.out",
       });
 
@@ -143,67 +154,279 @@ const Index = () => {
     };
   }, [Cookies.get("Userdata") || user]);
 
+  // Prevent body scroll when sidebar is open
   useEffect(() => {
-    // console.log(Cookies.get("Userdata"));
-  }, [Cookies.get("Userdata") || user]);
+    if (showMobileSidebar) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [showMobileSidebar]);
 
   return (
-    <div className="h-24 px-5 md:px-10 w-screen pt-3 sticky top-0 z-50">
-      <nav className="" ref={navRef}>
-        <div className="flex justify-between items-center py-4 h-full relative px-6">
-          <Link
-            to="/"
-            className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-orange-400 px-5 rounded-2xl py-2.5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-          >
-            <img
-              src={Logo}
-              alt="Logo"
-              className="w-8 h-8 drop-shadow-xl animate-pulse"
-            />
-            <h1 className="text-xl font-bold text-white hidden sm:block">
-              Pick My Pet
-            </h1>
-          </Link>
+    <>
+      <div className="h-24 px-5 md:px-10 w-screen pt-3 sticky top-0 z-50">
+        <nav className="" ref={navRef}>
+          <div className="flex justify-between items-center py-4 h-full relative px-6">
+            <Link
+              to="/"
+              className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-orange-400 px-5 rounded-2xl py-2.5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+            >
+              <img
+                src={Logo}
+                alt="Logo"
+                className="w-8 h-8 drop-shadow-xl animate-pulse"
+              />
+              <h1 className="text-xl font-bold text-white hidden sm:block">
+                Pick My Pet
+              </h1>
+            </Link>
 
-          <div className="flex items-center gap-6">
-            <ul className="hidden md:flex items-center space-x-2 text-base font-medium  px-4 py-2 rounded-2xl  ">
-              {[
-                {
-                  route: "pets",
-                  name: "Pets",
-                  Icon: NavIcons.Services,
-                  color: "hover:text-blue-300",
-                },
-                {
-                  route: "create-post",
-                  name: "Post",
-                  Icon: NavIcons.Post,
-                  color: "hover:text-blue-400",
-                },
-              ].map((item, index) => (
-                <Link key={index}>
-                  <Link
-                    to={`/${item.route}`}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl hover:bg-zinc-500/50 bg-zinc-300/50 backdrop-blur-md transition-all duration-300 text-black ${item.color}`}
-                  >
-                    <item.Icon />
-                    <span>{item.name}</span>
+            <div className="flex items-center gap-6">
+              <ul className="hidden md:flex items-center space-x-2 text-base font-medium  px-4 py-2 rounded-2xl  ">
+                {[
+                  {
+                    route: "pets",
+                    name: "Pets",
+                    Icon: NavIcons.Services,
+                    color: "hover:text-blue-300",
+                  },
+                  {
+                    route: "create-post",
+                    name: "Post",
+                    Icon: NavIcons.Post,
+                    color: "hover:text-blue-400",
+                  },
+                ].map((item, index) => (
+                  <Link key={index}>
+                    <Link
+                      to={`/${item.route}`}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl hover:bg-zinc-500/50 bg-zinc-300/50 backdrop-blur-md transition-all duration-300 text-black ${item.color}`}
+                    >
+                      <item.Icon />
+                      <span>{item.name}</span>
+                    </Link>
                   </Link>
-                </Link>
-              ))}
-            </ul>
+                ))}
+              </ul>
 
-            <Menu />
+              {/* Desktop Menu */}
+              <div className="hidden md:block">
+                <Menu />
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setShowMobileSidebar(true)}
+                className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-300/50 backdrop-blur-md hover:bg-zinc-400/50 transition-all duration-300 text-gray-800"
+              >
+                <NavIcons.Menu />
+              </button>
+            </div>
           </div>
+        </nav>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <MobileSidebar
+        isOpen={showMobileSidebar}
+        onClose={() => setShowMobileSidebar(false)}
+      />
+    </>
+  );
+};
+
+const MobileSidebar = ({ isOpen, onClose }) => {
+  const Swal = useSwal();
+  const { user, logout } = useUser();
+  const navigate = useNavigate();
+  const sidebarRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Ready to leave?",
+      text: "You will be logged out",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#ef4444",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout(); // Use the logout from context
+        onClose();
+        Swal.fire("Logged out!", "Come back soon!", "success");
+      }
+    });
+  };
+
+  const navigationItems = [
+    { route: "/", name: "Home", Icon: NavIcons.Home },
+    { route: "/pets", name: "Browse Pets", Icon: NavIcons.Services },
+    { route: "/create-post", name: "Create Post", Icon: NavIcons.Post },
+  ];
+
+  const userMenuItems = user
+    ? [
+        { route: "/user", name: "Profile", Icon: NavIcons.User },
+        { route: "/settings", name: "Settings", Icon: NavIcons.Settings },
+      ]
+    : [];
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+
+      {/* Sidebar */}
+      <div
+        ref={sidebarRef}
+        className={`fixed top-0 right-0 h-full w-80 bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Menu</h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200 text-gray-700"
+            >
+              <NavIcons.Close />
+            </button>
+          </div>
+
+          {/* User Info */}
+          {user ? (
+            <div className="p-6 bg-gradient-to-r from-blue-500 to-orange-400">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-lg">
+                  {user?.userpic ? (
+                    <img
+                      src={user.userpic}
+                      className="w-full h-full object-cover"
+                      alt="User avatar"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-blue-500">
+                      {user?.firstname?.[0]?.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    {user?.firstname || "User"}
+                  </h3>
+                  <p className="text-sm text-white/90">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 bg-gradient-to-r from-blue-500 to-orange-400">
+              <Link
+                to="/auth"
+                onClick={onClose}
+                className="flex items-center justify-center gap-3 bg-white text-blue-600 font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-300"
+              >
+                <NavIcons.Lock />
+                <span>Login / Sign Up</span>
+              </Link>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="py-4">
+              {/* Main Navigation */}
+              <div className="px-4 mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                  Navigation
+                </h3>
+                {navigationItems.map((item, index) => (
+                  <Link
+                    key={index}
+                    to={item.route}
+                    onClick={onClose}
+                    className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all duration-200 text-gray-700 hover:text-blue-600 mb-1 group"
+                  >
+                    <div className="group-hover:scale-110 transition-transform duration-200">
+                      <item.Icon />
+                    </div>
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+
+              {/* User Menu */}
+              {user && (
+                <div className="px-4 mb-6">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                    Account
+                  </h3>
+                  {userMenuItems.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.route}
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all duration-200 text-gray-700 hover:text-blue-600 mb-1 group"
+                    >
+                      <div className="group-hover:scale-110 transition-transform duration-200">
+                        <item.Icon />
+                      </div>
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Logout Button */}
+          {user && (
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-4 w-full px-4 py-3 rounded-xl bg-red-50 hover:bg-red-100 transition-all duration-200 text-red-600 group"
+              >
+                <div className="group-hover:scale-110 transition-transform duration-200">
+                  <NavIcons.Logout />
+                </div>
+                <span className="font-medium">Logout</span>
+              </button>
+            </div>
+          )}
         </div>
-      </nav>
-    </div>
+      </div>
+    </>
   );
 };
 
 const Menu = () => {
   const Swal = useSwal();
-  const { user, setUser } = useUser();
+  const { user, logout } = useUser();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -281,14 +504,13 @@ const Menu = () => {
                   confirmButtonColor: "#ef4444",
                 }).then((result) => {
                   if (result.isConfirmed) {
-                    Cookies.remove("Userdata");
-                    setUser(null);
+                    logout(); // Use the logout from context
                     setShowMenu(false);
                     Swal.fire("Logged out!", "Come back soon!", "success");
                   }
                 });
               }}
-              className="flex items-center gap-3 px-4 py-3 text-red-400 hover:tetx-red-600/10 w-full text-left transition-colors duration-200"
+              className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-600/10 w-full text-left transition-colors duration-200"
             >
               <NavIcons.Logout className="w-5 h-5" />
               <span>Logout</span>
@@ -311,12 +533,3 @@ const Menu = () => {
 };
 
 export default Index;
-
-// Add this CSS to your global styles or as a styled component
-const styles = `
-.menu-item {
-  @apply flex items-center gap-3 px-4 py-3 text-sm w-full transition-all duration-200 rounded-xl text-gray-700;
-  @apply hover:bg-white/20 hover:shadow-sm backdrop-blur-sm;
-  @apply hover:scale-105 transform transition-transform;
-}
-`;

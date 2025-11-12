@@ -1,5 +1,3 @@
-import React from 'react';
-import Card from './Card.jsx';
 import nd1 from '../../assets/images/normat_dog.png';
 import nd2 from '../../assets/images/normal_dog_2.png';
 import { Link } from 'react-router-dom';
@@ -30,71 +28,117 @@ const ArrowIcon = () => (
 
 const Index = () => {
   return (
-    <div className="container mx-auto px-5 my-16">
-      <div className="text-center mb-16">
-        <span className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-700 text-sm font-medium px-6 py-2.5 rounded-2xl inline-flex items-center gap-2 shadow-xl">
+    <div className="container mx-auto px-5 my-20">
+      {/* Hero Section */}
+      <div className="text-center mb-20">
+        <span className="bg-[#EDEEFF] text-[#4481EB] text-sm font-semibold px-6 py-3 rounded-full inline-flex items-center gap-2 shadow-sm border border-[#4481EB]/10">
           <PawIcon /> Find Your Perfect Match
         </span>
-        <h1 className="text-6xl font-bold mt-6 mb-6 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-          Where Pet Love Stories Begin
+        <h1 className="text-5xl md:text-6xl font-bold mt-8 mb-6 text-gray-900 leading-tight">
+          Where Pet Love Stories
+          <span className="block text-[#4481EB]">Begin</span>
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Join thousands of happy families who've found their perfect companions through our platform
+        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          Join thousands of happy families who&apos;ve found their perfect companions through our platform
         </p>
       </div>
 
-      {/* Stats Section with Glassmorphism */}
-      <div className="flex justify-center gap-8 mb-16">
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20 max-w-4xl mx-auto">
         {[
           { number: "5000+", label: "Pets Adopted", icon: <PawIcon /> },
           { number: "10k+", label: "Happy Families", icon: <HeartIcon /> },
           { number: "98%", label: "Success Rate", icon: <HomeIcon /> }
         ].map((stat, index) => (
-          <div key={index} className="text-center flex flex-col justify-center items-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20">
-            <div className="text-[#4481EB] mb-2 w-fit">{stat.icon}</div>
-            <div className="text-3xl font-bold text-[#4481EB]">{stat.number}</div>
-            <div className="text-gray-600">{stat.label}</div>
+          <div 
+            key={index} 
+            className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 text-center group hover:-translate-y-1"
+          >
+            <div className="text-[#4481EB] mb-3 inline-flex justify-center group-hover:scale-110 transition-transform duration-300">
+              {stat.icon}
+            </div>
+            <div className="text-4xl font-bold text-gray-900 mb-1">{stat.number}</div>
+            <div className="text-gray-600 font-medium">{stat.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row justify-evenly gap-8 items-stretch">
+      {/* Cards Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
         {/* Adopt Section */}
-        <div className="bg-gradient-to-br from-purple-500/80 to-blue-500/80 rounded-[2.5rem] border border-white/20 shadow-2xl w-full max-w-md p-8 flex flex-col items-center text-center transform transition-all duration-300 hover:scale-105 backdrop-blur-xl">
-          <div className="bg-white/20 p-4 rounded-2xl">
+        <div className="bg-gradient-to-br from-[#4481EB] to-[#5B92F5] rounded-3xl shadow-lg hover:shadow-2xl p-10 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 relative overflow-hidden group">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+          
+          <div className="bg-white/20 p-5 rounded-2xl mb-4 group-hover:scale-110 transition-transform duration-300">
             <HomeIcon />
           </div>
-          <div className="bg-blue-100 text-blue-800 text-xs font-medium px-6 py-2 rounded-full mb-4 flex items-center gap-2">
+          
+          <span className="bg-white/90 text-[#4481EB] text-xs font-bold px-5 py-2 rounded-full mb-6 inline-flex items-center gap-2 shadow-sm">
             <PawIcon /> Give a Home
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-3">Adopt a Friend</h2>
-          <p className="text-lg text-white/90 mb-6">
+          </span>
+          
+          <h2 className="text-4xl font-bold text-white mb-4">Adopt a Friend</h2>
+          
+          <p className="text-base text-white/95 mb-8 leading-relaxed max-w-md">
             Every adoption saves two lives - the pet you adopt and the one who takes their place. Start your journey of love today.
           </p>
-          <Link to={`/pets?species=&breed=&type=free&minPrice=0&maxPrice=100000&page=1`} className="group relative mt-auto bg-white text-[#4481EB] font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:bg-[#f8f9fa] hover:shadow-lg w-full flex items-center justify-center gap-2">
+          
+          <Link 
+            to={`/pets?species=&breed=&type=free&minPrice=0&maxPrice=100000&page=1`} 
+            className="mt-auto bg-white text-[#4481EB] font-bold py-4 px-10 rounded-xl transition-all duration-300 hover:bg-[#EDEEFF] hover:shadow-lg w-full max-w-xs flex items-center justify-center gap-2 group/btn"
+          >
             Find Your Match
-            <ArrowIcon />
+            <ArrowIcon className="group-hover/btn:translate-x-1 transition-transform duration-300" />
           </Link>
-          <img src={nd1} className="mt-6 w-36 h-36 object-cover rounded-full shadow-lg border-4 border-white" alt="A friendly dog available for adoption" />
+          
+          <div className="mt-8 relative">
+            <div className="absolute inset-0 bg-white/20 rounded-full blur-xl"></div>
+            <img 
+              src={nd1} 
+              className="relative w-40 h-40 object-cover rounded-full shadow-xl border-4 border-white/50" 
+              alt="A friendly dog available for adoption" 
+            />
+          </div>
         </div>
 
         {/* Buy/Sell Section */}
-        <div className="bg-gradient-to-br from-orange-400/80 to-pink-500/80 rounded-[2.5rem] border border-white/20 shadow-2xl w-full max-w-md p-8 flex flex-col items-center text-center transform transition-all duration-300 hover:scale-105 backdrop-blur-xl">
-          <div className="bg-white/20 p-4 rounded-2xl">
+        <div className="bg-gradient-to-br from-white to-[#EDEEFF] rounded-3xl shadow-lg hover:shadow-2xl p-10 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 border border-gray-100 relative overflow-hidden group">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-[#4481EB]/5 rounded-full -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#4481EB]/5 rounded-full -ml-16 -mb-16"></div>
+          
+          <div className="bg-[#EDEEFF] p-5 rounded-2xl mb-4 text-[#4481EB] group-hover:scale-110 transition-transform duration-300">
             <HeartIcon />
           </div>
-          <div className="bg-orange-100 text-orange-800 text-xs font-medium px-6 py-2 rounded-full mb-4 flex items-center gap-2">
+          
+          <span className="bg-[#4481EB]/10 text-[#4481EB] text-xs font-bold px-5 py-2 rounded-full mb-6 inline-flex items-center gap-2 border border-[#4481EB]/20">
             <PawIcon /> Connect Hearts
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-3">Buy or Rehome</h2>
-          <p className="text-lg text-white/90 mb-6">
+          </span>
+          
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Buy or Rehome</h2>
+          
+          <p className="text-base text-gray-700 mb-8 leading-relaxed max-w-md">
             Whether you're expanding your family or helping a pet find their forever home, we ensure safe and loving transitions.
           </p>
-          <Link to='/pets?species=&breed=&type=paid&minPrice=0&maxPrice=100000&page=1' className="group relative mt-auto bg-white text-[#FFB347] font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:bg-[#f8f9fa] hover:shadow-lg w-full flex items-center justify-center gap-2">
+          
+          <Link 
+            to='/pets?species=&breed=&type=paid&minPrice=0&maxPrice=100000&page=1' 
+            className="mt-auto bg-[#4481EB] text-white font-bold py-4 px-10 rounded-xl transition-all duration-300 hover:bg-[#3670DA] hover:shadow-lg w-full max-w-xs flex items-center justify-center gap-2 group/btn"
+          >
             Explore Options
-            <ArrowIcon />
+            <ArrowIcon className="group-hover/btn:translate-x-1 transition-transform duration-300" />
           </Link>
-          <img src={nd2} className="mt-6 w-36 h-36 object-cover rounded-full shadow-lg border-4 border-white" alt="A cute dog for sale" />
+          
+          <div className="mt-8 relative">
+            <div className="absolute inset-0 bg-[#4481EB]/10 rounded-full blur-xl"></div>
+            <img 
+              src={nd2} 
+              className="relative w-40 h-40 object-cover rounded-full shadow-xl border-4 border-[#4481EB]/20" 
+              alt="A cute dog for sale" 
+            />
+          </div>
         </div>
       </div>
     </div>

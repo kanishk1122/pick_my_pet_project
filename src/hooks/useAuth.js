@@ -1,13 +1,16 @@
 import { useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "../store";
+import { useAppDispatch, useAppSelector } from "@store/index";
 import {
+  loginUser,
+  googleAuth,
+  logoutUser,
+  verifyToken,
   updateUser,
   selectUser,
   selectIsAuthenticated,
   selectUserLoading,
   selectUserError,
-  setUser,
-} from "../store/slices/userSlice";
+} from "@store/slices/userSlice";
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -17,16 +20,31 @@ export const useAuth = () => {
   const loading = useAppSelector(selectUserLoading);
   const error = useAppSelector(selectUserError);
 
-  const updateUserAction = useCallback(
-    (userData) => {
-      return dispatch(updateUser(userData));
+  const login = useCallback(
+    (credentials) => {
+      return dispatch(loginUser(credentials));
     },
     [dispatch]
   );
 
-  const setUserAction = useCallback(
-    (userData) => {
-      dispatch(setUser(userData));
+  const loginWithGoogle = useCallback(
+    (authData) => {
+      return dispatch(googleAuth(authData));
+    },
+    [dispatch]
+  );
+
+  const logout = useCallback(() => {
+    return dispatch(logoutUser());
+  }, [dispatch]);
+
+  const checkAuth = useCallback(() => {
+    return dispatch(verifyToken());
+  }, [dispatch]);
+
+  const update = useCallback(
+    (updateData) => {
+      return dispatch(updateUser(updateData));
     },
     [dispatch]
   );
@@ -36,7 +54,10 @@ export const useAuth = () => {
     isAuthenticated,
     loading,
     error,
-    updateUser: updateUserAction,
-    setUser: setUserAction,
+    login,
+    loginWithGoogle,
+    logout,
+    checkAuth,
+    update,
   };
 };

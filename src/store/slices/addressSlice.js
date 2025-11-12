@@ -1,44 +1,38 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { ADDRESS } from "../../Consts/apikeys";
+import apiService from "@utils/apiService";
+import { ADDRESS } from "@Consts/apikeys";
 
 const initialState = {
   addresses: [],
   loading: false,
   error: null,
-  pagination: {
-    currentPage: 1,
-    totalPages: 1,
-    totalAddresses: 0,
-  },
 };
 
 // Async Thunks
 export const fetchAddresses = createAsyncThunk(
   "addresses/fetchAddresses",
-  async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${ADDRESS.Get}?page=${page}&limit=${limit}`,
-        { withCredentials: true }
-      );
-      return response.data;
+      const response = await apiService.get(ADDRESS.Get);
+      return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch addresses"
+      );
     }
   }
 );
 
-export const createAddress = createAsyncThunk(
-  "addresses/createAddress",
+export const addAddress = createAsyncThunk(
+  "addresses/addAddress",
   async (addressData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(ADDRESS.Add, addressData, {
-        withCredentials: true,
-      });
+      const response = await apiService.post(ADDRESS.Add, addressData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to add address"
+      );
     }
   }
 );
@@ -47,12 +41,12 @@ export const updateAddress = createAsyncThunk(
   "addresses/updateAddress",
   async ({ id, addressData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(ADDRESS.Update(id), addressData, {
-        withCredentials: true,
-      });
+      const response = await apiService.put(ADDRESS.Update(id), addressData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update address"
+      );
     }
   }
 );
@@ -61,10 +55,12 @@ export const deleteAddress = createAsyncThunk(
   "addresses/deleteAddress",
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(ADDRESS.Delete(id), { withCredentials: true });
+      await apiService.delete(ADDRESS.Delete(id));
       return id;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete address"
+      );
     }
   }
 );
@@ -72,36 +68,20 @@ export const deleteAddress = createAsyncThunk(
 const addressSlice = createSlice({
   name: "addresses",
   initialState,
-  reducers: {
-    clearAddresses: (state) => {
-      state.addresses = [];
-      state.pagination = initialState.pagination;
-      state.error = null;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch Addresses
-      .addCase(fetchAddresses.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      // Fulfilled states
       .addCase(fetchAddresses.fulfilled, (state, action) => {
         state.loading = false;
-        state.addresses = action.payload.data;
-        state.pagination = action.payload.pagination;
+        state.addresses = action.payload;
       })
-      .addCase(fetchAddresses.rejected, (state, action) => {
+      .addCase(addAddress.fulfilled, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.addresses.push(action.payload);
       })
-      // Create Address
-      .addCase(createAddress.fulfilled, (state, action) => {
-        state.addresses.unshift(action.payload);
-        state.pagination.totalAddresses += 1;
-      })
-      // Update Address
       .addCase(updateAddress.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.addresses.findIndex(
           (addr) => addr._id === action.payload._id
         );
@@ -109,28 +89,32 @@ const addressSlice = createSlice({
           state.addresses[index] = action.payload;
         }
       })
-      // Delete Address
       .addCase(deleteAddress.fulfilled, (state, action) => {
+        state.loading = false;
         state.addresses = state.addresses.filter(
           (addr) => addr._id !== action.payload
         );
-        state.pagination.totalAddresses -= 1;
       })
-      // Generic error handling for create/update/delete
+      // Generic pending and rejected states must come after addCase
       .addMatcher(
         (action) =>
-          [
-            createAddress.rejected,
-            updateAddress.rejected,
-            deleteAddress.rejected,
-          ].includes(action.type),
+          action.type.startsWith("addresses/") &&
+          action.type.endsWith("/pending"),
+        (state) => {
+          state.loading = true;
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        (action) =>
+          action.type.startsWith("addresses/") &&
+          action.type.endsWith("/rejected"),
         (state, action) => {
+          state.loading = false;
           state.error = action.payload;
         }
       );
   },
 });
-
-export const { clearAddresses } = addressSlice.actions;
 
 export default addressSlice.reducer;

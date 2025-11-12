@@ -2,6 +2,7 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { useCallback, useEffect } from "react";
 import {
   fetchPosts,
+  fetchUserPosts,
   createPost,
   updatePost,
   deletePost,
@@ -42,6 +43,10 @@ export const usePosts = () => {
     },
     [dispatch]
   );
+
+  const fetchUserPostsAction = useCallback(() => {
+    return dispatch(fetchUserPosts());
+  }, [dispatch]);
 
   const createPostAction = useCallback(
     (postData) => {
@@ -129,6 +134,7 @@ export const usePosts = () => {
 
     // Actions
     fetchPosts: fetchPostsAction,
+    fetchUserPosts: fetchUserPostsAction,
     createPost: createPostAction,
     updatePost: updatePostAction,
     deletePost: deletePostAction,

@@ -1,4 +1,4 @@
-const baseurl = "http://localhost:5000/api/";
+const baseurl = "http://192.168.29.217:5000/api/";
 const USERPath = "users/";
 const Authpath = "auth/";
 

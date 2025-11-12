@@ -7,6 +7,10 @@ export default defineConfig({
   define: {
     "process.env": {},
   },
+  server: {
+    host: true, // Allows access from network
+    allowedHosts: ["pickmypet.local"],
+  },
   resolve: {
     alias: {
       "@utils": path.resolve("./src/utils"), // Map @utils to src/utils

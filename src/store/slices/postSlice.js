@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import apiService from "@utils/apiService";
 import { POST } from "../../Consts/apikeys";
 
 // Initial state
 const initialState = {
   posts: [],
+  post: null,
   loading: false,
   error: null,
   pageInfo: {
@@ -30,10 +31,9 @@ export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",
   async (params, { rejectWithValue, signal }) => {
     try {
-      const response = await axios.get(POST.Filter, {
+      const response = await apiService.get(POST.Filter, {
         params,
         signal,
-        withCredentials: true,
       });
 
       if (!response.data.success) {
@@ -50,8 +50,8 @@ export const fetchPosts = createAsyncThunk(
         },
       };
     } catch (error) {
-      if (axios.isCancel(error)) {
-        throw error; // Re-throw canceled requests
+      if (apiService.isCancel(error)) {
+        throw error;
       }
       return rejectWithValue(
         error.response?.data?.message ||
@@ -62,13 +62,40 @@ export const fetchPosts = createAsyncThunk(
   }
 );
 
+export const fetchUserPosts = createAsyncThunk(
+  "posts/fetchUserPosts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiService.get(POST.GetUserPosts);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to fetch user posts");
+      }
+
+      return {
+        posts: response.data.data || [],
+        pageInfo: {
+          currentPage: response.data.meta?.pagination?.page || 1,
+          totalPages: response.data.meta?.pagination?.totalPages || 1,
+          totalPosts: response.data.meta?.pagination?.total || 0,
+          limit: response.data.meta?.pagination?.limit || 12,
+        },
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch user posts"
+      );
+    }
+  }
+);
+
 export const createPost = createAsyncThunk(
   "posts/createPost",
   async (postData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(POST.Create, postData, {
-        withCredentials: true,
-      });
+      const response = await apiService.post(POST.Create, postData);
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to create post");
@@ -89,9 +116,7 @@ export const updatePost = createAsyncThunk(
   "posts/updatePost",
   async ({ id, postData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(POST.Update(id), postData, {
-        withCredentials: true,
-      });
+      const response = await apiService.put(POST.Update(id), postData);
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to update post");
@@ -112,9 +137,7 @@ export const deletePost = createAsyncThunk(
   "posts/deletePost",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(POST.Delete(id), {
-        withCredentials: true,
-      });
+      const response = await apiService.delete(POST.Delete(id));
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to delete post");
@@ -135,9 +158,7 @@ export const fetchPostById = createAsyncThunk(
   "posts/fetchPostById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.get(POST.GetPostById(id), {
-        withCredentials: true,
-      });
+      const response = await apiService.get(POST.GetPostById(id));
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch post");
@@ -243,6 +264,22 @@ const postSlice = createSlice({
         state.error = action.payload || "Failed to fetch posts";
       })
 
+      // Fetch User Posts
+      .addCase(fetchUserPosts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserPosts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.posts = action.payload.posts;
+        state.pageInfo = action.payload.pageInfo;
+        state.error = null;
+      })
+      .addCase(fetchUserPosts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch user posts";
+      })
+
       // Create Post
       .addCase(createPost.pending, (state) => {
         state.loading = true;
@@ -338,7 +375,7 @@ export const selectPageInfo = (state) => state.posts.pageInfo;
 export const selectFilters = (state) => state.posts.filters;
 export const selectViewMode = (state) => state.posts.viewMode;
 export const selectPostById = (id) => (state) =>
-  state.posts.posts.find((post) => post._id === id);
+  state.posts.posts.find((post) => post._id === id) || state.posts.post;
 
 // Export reducer
 export default postSlice.reducer;

@@ -2,10 +2,9 @@ import React from "react";
 import PropTypes from "prop-types";
 import Custominputfields, { Passwordcustomfiled } from "../Custominputfields";
 import { useSwal } from "@utils/Customswal.jsx";
-import { USER } from "@Consts/apikeys";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../utils/Usercontext";
+import { useAuth } from "@hooks/useAuth";
 
 const Login = ({
   email,
@@ -21,43 +20,25 @@ const Login = ({
 }) => {
   const Swal = useSwal();
   const navigate = useNavigate();
-  const { setUser } = useUser();
+  const { login } = useAuth();
 
-  // Configure axios to include cookies
-  axios.defaults.withCredentials = true;
+  async function loginUser(email, password) {
+    const result = await login({ email, password });
 
-  function loginUser(email, password) {
-    axios
-      .post(
-        `${USER.Login}`,
-        {
-          email: email,
-          password: password, // Remove encryption, handle on backend
-        },
-        {
-          withCredentials: true,
-        }
-      )
-      .then((response) => {
-        if (response.status === 200) {
-          Swal.fire({
-            icon: "success",
-            title: "Welcome",
-            text: "Login Successful",
-          }).then(() => {
-            // Update user context with response data
-            setUser(response.data.data.user);
-            navigate("/");
-          });
-        }
-      })
-      .catch((error) => {
-        console.log(error, "this is error");
-        Swal.fire({
-          title: error?.response?.data?.message || "Login failed",
-          icon: "error",
-        });
+    if (result.meta.requestStatus === "fulfilled") {
+      Swal.fire({
+        icon: "success",
+        title: "Welcome",
+        text: "Login Successful",
+      }).then(() => {
+        navigate("/");
       });
+    } else {
+      Swal.fire({
+        title: result.payload || "Login failed",
+        icon: "error",
+      });
+    }
   }
 
   return (

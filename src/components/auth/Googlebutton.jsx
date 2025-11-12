@@ -1,61 +1,50 @@
 import React, { useState } from "react";
-import { USER } from "../../Consts/apikeys";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import PropTypes from "prop-types";
 import { useSwal } from "@utils/Customswal.jsx";
-import { useUser } from "../../utils/Usercontext";
+import { useAuth } from "@hooks/useAuth";
 
 const Googlebutton = ({ authtype }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const Swal = useSwal();
   const Navigate = useNavigate();
-  const { setUser } = useUser();
-
-  // Configure axios to include cookies
-  axios.defaults.withCredentials = true;
+  const { loginWithGoogle } = useAuth();
 
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => {
-      try {
-        fetchUserInfo(tokenResponse.access_token);
-      } catch (error) {
-        console.error("Failed to process token:", error);
-      }
+      fetchUserInfo(tokenResponse.access_token);
+    },
+    onError: (error) => {
+      console.error("Google login error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Google Login Failed",
+        text: "Could not get authorization from Google. Please try again.",
+      });
     },
   });
 
   const fetchUserInfo = async (accessToken) => {
-    try {
-      const serverResponse = await axios.post(USER.Auth, {
-        token: accessToken,
-        referralCode,
+    const result = await loginWithGoogle({
+      token: accessToken,
+      referralCode,
+    });
+
+    if (result.meta.requestStatus === "fulfilled") {
+      Swal.fire({
+        icon: "success",
+        title: "Authentication Successful!",
+        text: "Welcome!",
+      }).then(() => {
+        Navigate("/");
       });
-
-      if (serverResponse?.status === 200 || serverResponse?.status === 201) {
-        // Update user context immediately
-        setUser(serverResponse.data.data.user);
-
-        Swal.fire({
-          icon: "success",
-          title: "Authentication Successful!",
-          text: serverResponse.data.message || "Welcome!",
-        }).then(() => {
-          Navigate("/");
-        });
-      } else {
-        throw new Error(serverResponse.data.message || "Authentication failed.");
-      }
-    } catch (error) {
-      console.error("Error during Google authentication:", error);
+    } else {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text:
-          error.response?.data?.message ||
-          "Authentication failed. Please try again.",
+        text: result.payload || "Authentication failed. Please try again.",
       });
     }
   };
@@ -130,4 +119,3 @@ const Googlebutton = ({ authtype }) => {
 };
 
 export default Googlebutton;
-

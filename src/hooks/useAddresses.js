@@ -2,60 +2,49 @@ import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../store";
 import {
   fetchAddresses,
-  createAddress,
+  addAddress,
   updateAddress,
   deleteAddress,
-  clearAddresses,
 } from "../store/slices/addressSlice";
 
 export const useAddresses = () => {
   const dispatch = useAppDispatch();
-
-  const { addresses, loading, error, pagination } = useAppSelector(
+  const { addresses, loading, error } = useAppSelector(
     (state) => state.addresses
   );
 
-  const getAddresses = useCallback(
-    (params) => {
-      dispatch(fetchAddresses(params));
-    },
-    [dispatch]
-  );
+  const getAddresses = useCallback(() => {
+    dispatch(fetchAddresses());
+  }, [dispatch]);
 
-  const addAddress = useCallback(
+  const addNewAddress = useCallback(
     (addressData) => {
-      return dispatch(createAddress(addressData));
+      return dispatch(addAddress(addressData));
     },
     [dispatch]
   );
 
-  const editAddress = useCallback(
+  const updateExistingAddress = useCallback(
     (id, addressData) => {
       return dispatch(updateAddress({ id, addressData }));
     },
     [dispatch]
   );
 
-  const removeAddress = useCallback(
+  const deleteExistingAddress = useCallback(
     (id) => {
       return dispatch(deleteAddress(id));
     },
     [dispatch]
   );
 
-  const resetAddresses = useCallback(() => {
-    dispatch(clearAddresses());
-  }, [dispatch]);
-
   return {
     addresses,
     loading,
     error,
-    pagination,
     getAddresses,
-    addAddress,
-    editAddress,
-    removeAddress,
-    resetAddresses,
+    addAddress: addNewAddress,
+    updateAddress: updateExistingAddress,
+    deleteAddress: deleteExistingAddress,
   };
 };

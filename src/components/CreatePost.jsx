@@ -236,6 +236,28 @@ const CreatePost = () => {
         throw new Error("Please upload at least one image");
       }
 
+      // New validation for phone numbers and links
+      const phoneRegex =
+        /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+      const linkRegex = /(https?:\/\/[^\s]+)/g;
+
+      if (
+        phoneRegex.test(formData.petName) ||
+        linkRegex.test(formData.petName)
+      ) {
+        throw new Error("Pet name cannot contain phone numbers or links.");
+      }
+
+      phoneRegex.lastIndex = 0; // Reset regex state
+      linkRegex.lastIndex = 0; // Reset regex state
+
+      if (
+        phoneRegex.test(formData.description) ||
+        linkRegex.test(formData.description)
+      ) {
+        throw new Error("Description cannot contain phone numbers or links.");
+      }
+
       // Validate age value if provided
       if (
         formData.ageValue &&

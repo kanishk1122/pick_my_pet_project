@@ -1,6 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const data = [
   {
@@ -18,21 +17,6 @@ const data = [
     ),
     link: "/user/",
   },
-  // {
-  //   title: "Email & Password",
-  //   icon: (
-  //     <svg
-
-  //       xmlns="http://www.w3.org/2000/svg"
-  //       viewBox="0 0 24 24"
-  //       width="24px"
-  //       height="24px"
-  //     >
-  //        <path d="M 6 3 C 4.3550302 3 3 4.3550302 3 6 L 3 8 A 1.0001 1.0001 0 1 0 5 8 L 5 6 C 5 5.4349698 5.4349698 5 6 5 L 8 5 A 1.0001 1.0001 0 1 0 8 3 L 6 3 z M 16 3 A 1.0001 1.0001 0 1 0 16 5 L 18 5 C 18.56503 5 19 5.4349698 19 6 L 19 8 A 1.0001 1.0001 0 1 0 21 8 L 21 6 C 21 4.3550302 19.64497 3 18 3 L 16 3 z M 11.984375 5.9863281 A 1.0001 1.0001 0 0 0 11 7 L 11 17 A 1.0001 1.0001 0 1 0 13 17 L 13 7 A 1.0001 1.0001 0 0 0 11.984375 5.9863281 z M 7.984375 8.9863281 A 1.0001 1.0001 0 0 0 7 10 L 7 14 A 1.0001 1.0001 0 1 0 9 14 L 9 10 A 1.0001 1.0001 0 0 0 7.984375 8.9863281 z M 15.984375 8.9863281 A 1.0001 1.0001 0 0 0 15 10 L 15 14 A 1.0001 1.0001 0 1 0 17 14 L 17 10 A 1.0001 1.0001 0 0 0 15.984375 8.9863281 z M 3.984375 14.986328 A 1.0001 1.0001 0 0 0 3 16 L 3 18 C 3 19.64497 4.3550302 21 6 21 L 8 21 A 1.0001 1.0001 0 1 0 8 19 L 6 19 C 5.4349698 19 5 18.56503 5 18 L 5 16 A 1.0001 1.0001 0 0 0 3.984375 14.986328 z M 19.984375 14.986328 A 1.0001 1.0001 0 0 0 19 16 L 19 18 C 19 18.56503 18.56503 19 18 19 L 16 19 A 1.0001 1.0001 0 1 0 16 21 L 18 21 C 19.64497 21 21 19.64497 21 18 L 21 16 A 1.0001 1.0001 0 0 0 19.984375 14.986328 z" />
-  //        </svg>
-  //     ),
-  //   link: "security",
-  // },
   {
     title: "Update Profile",
     icon: (
@@ -50,7 +34,7 @@ const data = [
     link: "setting",
   },
   {
-    title: "Add Address",
+    title: "Manage Address",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +51,12 @@ const data = [
   {
     title: "My Posts",
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-5 h-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
         <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
       </svg>
     ),
@@ -76,33 +65,105 @@ const data = [
   {
     title: "My Referal",
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-5 h-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
         <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 10a1 1 0 112 0v3a1 1 0 11-2 0V9a1 1 0 011-1h3a1 1 0 110 2H9a1 1 0 01-1-1z" />
       </svg>
     ),
     link: "refer",
-  }
+  },
 ];
 
-
 const Sidebar = () => {
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (link) => {
+    // Check if current path matches the link
+    const currentPath = location.pathname;
+    const fullLink = link.startsWith('/') ? link : `/user/${link}`;
+    
+    // Exact match for root user path
+    if (fullLink === '/user/' && currentPath === '/user/') {
+      return true;
+    }
+    
+    // For other routes, check if path includes the link
+    return currentPath.includes(link) && fullLink !== '/user/';
+  };
+
   return (
-    <div className="w-[260px] h-full pt-10 min-h-screen">
-      <ul className="w-full justify-center items-center flex flex-col  gap-4 mt-2 *:py-2 *:w-full px-3 *:rounded-xl text-center">
-        {data.map((item, index) => (
-            <ol key={item.title} className="">
-            <button onClick={()=>Navigate(`${item.link}`)} className=" brand-button w-full h-full  flex justify-center gap-3 items-center">
-              {" "}
-             {item.icon}
-              <span>{item.title}</span>
-            </button>
-          </ol>
-        ))}
-        {/* <ol><button className=' brand-button w-full h-full'>demo</button></ol> */}
+    <div className="w-full h-full md:pt-10">
+      {/* Mobile Horizontal Scroll */}
+      <ul className="w-full flex md:flex-col gap-3 px-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 md:pt-2 scrollbar-hide">
+        {data.map((item, index) => {
+          const active = isActive(item.link);
+          
+          return (
+            <li key={item.title} className="flex-shrink-0 md:flex-shrink">
+              <button
+                onClick={() => navigate(`${item.link}`)}
+                className={`
+                  group relative w-full h-full flex justify-center md:justify-start gap-3 items-center px-4 py-3 md:py-3.5 rounded-xl
+                  font-medium transition-all duration-300 whitespace-nowrap
+                  ${
+                    active
+                      ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg scale-105 md:scale-100"
+                      : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 hover:text-emerald-700 hover:shadow-md border border-gray-200 hover:border-emerald-300"
+                  }
+                `}
+              >
+                {/* Icon */}
+                <span className={`
+                  transition-transform duration-300
+                  ${active ? "scale-110" : "group-hover:scale-110"}
+                `}>
+                  {item.icon}
+                </span>
+
+                {/* Title */}
+                <span className="hidden md:inline text-sm font-semibold">
+                  {item.title}
+                </span>
+
+                {/* Active Indicator for Desktop */}
+                {active && (
+                  <span className="hidden md:block absolute right-3 w-2 h-2 bg-white rounded-full animate-pulse" />
+                )}
+
+                {/* Mobile Title Tooltip */}
+                <span className="md:hidden absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                  {item.title}
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
+
+      {/* Active Page Indicator for Mobile */}
+      <div className="md:hidden mt-3 px-3">
+        <div className="text-center">
+          <span className="text-sm font-semibold text-gray-700">
+            {data.find(item => isActive(item.link))?.title || "Personal info"}
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Sidebar;
+
+// Add this to your global CSS file to hide scrollbar
+// .scrollbar-hide::-webkit-scrollbar {
+//   display: none;
+// }
+// .scrollbar-hide {
+//   -ms-overflow-style: none;
+//   scrollbar-width: none;
+// }
