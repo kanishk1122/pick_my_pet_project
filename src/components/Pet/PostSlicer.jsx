@@ -1,14 +1,51 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  FaTh,
-  FaList,
-  FaSort,
-  FaSortAmountDown,
-  FaSortAmountUp,
-} from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import { SLICER } from "../../Consts/apikeys";
+
+// --- Custom SVGs (Stone/Emerald Theme) ---
+
+const GridIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+  </svg>
+);
+
+const ListIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+const SortIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+  </svg>
+);
+
+const ChevronDownIcon = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const SparklesIcon = () => (
+  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+  </svg>
+);
+
+const MoneyIcon = () => (
+  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  </svg>
+);
 
 const PostSlicer = ({
   pageInfo,
@@ -21,19 +58,8 @@ const PostSlicer = ({
 }) => {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
-  const sortOptions = SLICER.SORT_OPTIONS.map((opt) => {
-    switch (opt.value) {
-      case "newest":
-      case "price-high":
-        return { ...opt, icon: FaSortAmountDown };
-      case "oldest":
-      case "price-low":
-        return { ...opt, icon: FaSortAmountUp };
-      default:
-        return { ...opt, icon: FaSort };
-    }
-  });
-
+  // Map sort options locally to avoid dependency issues with icons in const files
+  const sortOptions = SLICER.SORT_OPTIONS; 
   const pageSizeOptions = SLICER.PAGE_SIZE_OPTIONS;
 
   const getCurrentSortLabel = () => {
@@ -43,39 +69,43 @@ const PostSlicer = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="bg-white"
+      transition={{ duration: 0.3 }}
+      className="bg-white w-full"
     >
       <div className="px-4 md:px-6 py-4 md:py-5">
+        
         {/* Top Row - Results and Controls */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
-          {/* Results Info */}
-          <div className="flex flex-wrap items-center gap-2 md:gap-4">
-            <div className="text-sm md:text-base text-gray-600">
-              <span className="font-bold text-lg md:text-xl text-green-600">
+          
+          {/* Left: Results Info */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="text-sm text-stone-600">
+              <span className="font-bold text-xl text-emerald-600 ">
                 {pageInfo?.totalPosts || 0}
               </span>{" "}
-              <span className="hidden sm:inline">pets found</span>
-              <span className="sm:hidden">pets</span>
+              <span className="hidden sm:inline font-medium">pets found</span>
+              <span className="sm:hidden font-medium">pets</span>
             </div>
-            <div className="text-xs md:text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            {/* Page Badge */}
+            <div className="text-xs font-semibold text-stone-500 bg-stone-100 border border-stone-200 px-3 py-1 rounded-full">
               Page {pageInfo?.currentPage || 1} of {pageInfo?.totalPages || 1}
             </div>
           </div>
 
-          {/* Controls Row */}
-          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full lg:w-auto">
+          {/* Right: Controls Row */}
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full lg:w-auto ">
+            
             {/* Page Size Selector */}
-            <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-              <label className="text-xs md:text-sm text-gray-600 whitespace-nowrap">
-                Show:
+            <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 transition-colors hover:border-emerald-200">
+              <label className="text-xs font-bold text-stone-500 whitespace-nowrap uppercase tracking-wider">
+                Show
               </label>
               <select
                 value={currentPageSize}
                 onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-                className="bg-white border border-gray-300 rounded-md px-2 py-1 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+                className="bg-transparent text-stone-700 text-sm font-semibold focus:outline-none cursor-pointer appearance-none"
               >
                 {pageSizeOptions.map((size) => (
                   <option key={size} value={size}>
@@ -89,129 +119,118 @@ const PostSlicer = ({
             <div className="relative flex-1 lg:flex-initial">
               <button
                 onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                className="w-full lg:w-auto flex items-center justify-between gap-2 px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                className="w-full lg:w-auto flex items-center justify-between gap-3 px-4 py-2 bg-white border border-stone-200 rounded-xl text-sm font-semibold text-stone-700 hover:border-emerald-300 hover:text-emerald-700 transition-all shadow-sm active:scale-95"
               >
                 <div className="flex items-center gap-2">
-                  <FaSort className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
-                  <span className="truncate max-w-[120px] md:max-w-none">
+                  <SortIcon />
+                  <span className="truncate max-w-[100px] md:max-w-none">
                     {getCurrentSortLabel()}
                   </span>
                 </div>
-                <svg
-                  className={`w-4 h-4 transition-transform ${
+                <ChevronDownIcon
+                  className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${
                     sortDropdownOpen ? "rotate-180" : ""
                   }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                />
               </button>
 
-              {sortDropdownOpen && (
-                <>
-                  {/* Backdrop */}
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setSortDropdownOpen(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-2xl z-20 overflow-hidden"
-                  >
-                    <div className="py-1">
-                      {sortOptions.map((option) => {
-                        const IconComponent = option.icon;
-                        return (
+              <AnimatePresence>
+                {sortDropdownOpen && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setSortDropdownOpen(false)}
+                    />
+                    {/* Dropdown Menu */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute  right-0 mt-2 w-56 bg-white border border-stone-100 rounded-2xl shadow-xl  z-20 overflow-hidden ring-1 ring-black/5"
+                    >
+                      <div className="py-2 fixed bg-white px-2 gap-2  rounded-md brand-button ">
+                        {sortOptions.map((option) => (
                           <button
                             key={option.value}
                             onClick={() => {
                               onSortChange(option.value);
                               setSortDropdownOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors ${
+                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-colors ${
                               currentSort === option.value
-                                ? "bg-green-50 text-green-700 font-medium"
-                                : "text-gray-700 hover:bg-gray-50"
-                            }`}
+                                ? "bg-emerald-50 text-emerald-700 font-bold"
+                                : "text-stone-600 hover:bg-stone-50"
+                            } rounded-lg`}
                           >
-                            <IconComponent
-                              className={`w-4 h-4 ${
-                                currentSort === option.value
-                                  ? "text-green-600"
-                                  : "text-gray-400"
-                              }`}
-                            />
-                            {option.label}
+                            <span>{option.label}</span>
+                            {currentSort === option.value && <CheckIcon />}
                           </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                </>
-              )}
+                        ))}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-gray-50 rounded-lg overflow-hidden border border-gray-300">
+            {/* View Mode Toggle (Segmented Control Style) */}
+            <div className="flex items-center p-1 bg-stone-100 rounded-xl border border-stone-200 ">
               <button
                 onClick={() => onViewModeChange(SLICER.VIEW_MODES.GRID)}
-                className={`p-2 md:p-2.5 transition-all ${
+                className={`p-2 rounded-lg transition-all duration-200 ${
                   currentViewMode === SLICER.VIEW_MODES.GRID
-                    ? "bg-green-500 text-white shadow-md"
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                }`}
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-stone-400 hover:text-stone-600"
+                } `}
                 title="Grid View"
               >
-                <FaTh className="w-4 h-4" />
+                <GridIcon />
               </button>
               <button
                 onClick={() => onViewModeChange(SLICER.VIEW_MODES.LIST)}
-                className={`p-2 md:p-2.5 border-l border-gray-300 transition-all ${
+                className={`p-2 rounded-lg transition-all duration-200 ${
                   currentViewMode === SLICER.VIEW_MODES.LIST
-                    ? "bg-green-500 text-white shadow-md"
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-stone-400 hover:text-stone-600"
                 }`}
                 title="List View"
               >
-                <FaList className="w-4 h-4" />
+                <ListIcon />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Quick Filter Chips */}
-        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-          <span className="text-xs text-gray-500 self-center hidden sm:block">
-            Quick filters:
+        {/* Bottom Row: Quick Filter Chips */}
+        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-stone-100">
+          <span className="text-xs font-bold text-stone-400 uppercase tracking-wider mr-1 hidden sm:block">
+            Quick Sort:
           </span>
+          
           <button
             onClick={() => onSortChange("newest")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+            className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${
               currentSort === "newest"
-                ? "bg-green-500 text-white border-green-600 shadow-md"
-                : "bg-white text-gray-600 border-gray-300 hover:border-green-300 hover:bg-green-50"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm"
+                : "bg-white text-stone-600 border-stone-200 hover:border-emerald-300 hover:text-emerald-600"
             }`}
           >
-            ✨ Latest
+            <SparklesIcon />
+            Latest
           </button>
+          
           <button
             onClick={() => onSortChange("price-low")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+            className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${
               currentSort === "price-low"
-                ? "bg-green-500 text-white border-green-600 shadow-md"
-                : "bg-white text-gray-600 border-gray-300 hover:border-green-300 hover:bg-green-50"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm"
+                : "bg-white text-stone-600 border-stone-200 hover:border-emerald-300 hover:text-emerald-600"
             }`}
           >
-            💰 Budget
+            <MoneyIcon />
+            Budget Friendly
           </button>
         </div>
       </div>

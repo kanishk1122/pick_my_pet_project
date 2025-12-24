@@ -31,10 +31,11 @@ export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",
   async (params, { rejectWithValue, signal }) => {
     try {
-      const response = await apiService.get(POST.Filter, {
-        params,
-        signal,
-      });
+      const response = await apiService.get(
+        POST.Filter,
+        params, // 2nd arg: The filters (species, breed, etc.)
+        { signal } // 3rd arg: Options (AbortSignal)
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch posts");
