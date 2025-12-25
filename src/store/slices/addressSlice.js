@@ -4,6 +4,7 @@ import { ADDRESS } from "@Consts/apikeys";
 
 const initialState = {
   addresses: [],
+  pagination: null,
   loading: false,
   error: null,
 };
@@ -11,9 +12,11 @@ const initialState = {
 // Async Thunks
 export const fetchAddresses = createAsyncThunk(
   "addresses/fetchAddresses",
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 4 } = {}, { rejectWithValue }) => {
     try {
-      const response = await apiService.get(ADDRESS.Get);
+      const response = await apiService.get(
+        `${ADDRESS.Get}?page=${page}&limit=${limit}`
+      );
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -74,7 +77,8 @@ const addressSlice = createSlice({
       // Fulfilled states
       .addCase(fetchAddresses.fulfilled, (state, action) => {
         state.loading = false;
-        state.addresses = action.payload;
+        state.addresses = action.payload.addresses;
+        state.pagination = action.payload.pagination;
       })
       .addCase(addAddress.fulfilled, (state, action) => {
         state.loading = false;

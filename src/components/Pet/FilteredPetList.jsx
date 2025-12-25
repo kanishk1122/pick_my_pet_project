@@ -11,7 +11,7 @@ const PetListItem = ({ pet, index }) => (
     transition={{ delay: index * 0.05 }}
   >
     <Link
-      to={`/pet/${pet.slug}`}
+      to={`/pet/${pet?.slug}`}
       className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
     >
       <div className="flex">

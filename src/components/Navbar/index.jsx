@@ -2,75 +2,66 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "../../assets/images/Logo.png";
 import { gsap } from "gsap";
-import { useUser } from "../../utils/Usercontext";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useNavigate } from "react-router-dom";
+import { useUser } from "../../utils/Usercontext";
 import { useSwal } from "../../utils/Customswal";
 import Cookies from "js-cookie";
 
-// Add SVG Icon Components
+// --- Custom Icons (Stroke Style) ---
 const NavIcons = {
   Post: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.89,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3M19,19H5V5H19V19M17,17H7V7H17V17Z" />
-    </svg>
-  ),
-  About: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
   Services: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12,5.5A2.5,2.5 0 0,1 14.5,8A2.5,2.5 0 0,1 12,10.5A2.5,2.5 0 0,1 9.5,8A2.5,2.5 0 0,1 12,5.5M5,8A2.5,2.5 0 0,1 7.5,10.5A2.5,2.5 0 0,1 5,13A2.5,2.5 0 0,1 2.5,10.5A2.5,2.5 0 0,1 5,8M19,8A2.5,2.5 0 0,1 21.5,10.5A2.5,2.5 0 0,1 19,13A2.5,2.5 0 0,1 16.5,10.5A2.5,2.5 0 0,1 19,8M12,13A2.5,2.5 0 0,1 14.5,15.5A2.5,2.5 0 0,1 12,18A2.5,2.5 0 0,1 9.5,15.5A2.5,2.5 0 0,1 12,13Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
     </svg>
   ),
   User: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </svg>
   ),
   Settings: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   ),
   Logout: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </svg>
   ),
   Lock: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
   ),
   Menu: () => (
-    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   ),
   Close: () => (
-    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
   Home: () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
     </svg>
   ),
 };
 
-const Index = () => {
+const Navbar = () => {
   const navRef = useRef(null);
-  const logoRef = useRef(null);
-  const menuRef = useRef(null);
-  const menuItemsRef = useRef([]);
   const { user } = useUser();
   const [userdete, setuserdete] = useState(undefined);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (Cookies.get("Userdata")) {
@@ -80,79 +71,37 @@ const Index = () => {
     }
   }, [Cookies.get("Userdata") || user]);
 
+  // Scroll Animation (Shrink Padding)
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
     const scrollTriggerInstance = ScrollTrigger.create({
-      trigger: navRef.current,
-      start: "top top",
-      end: "+=500",
-      onEnter: () => {
-        gsap.to(navRef.current, {
-          backgroundColor: "rgba(15, 23, 42, 0.0)",
-          duration: 0.2,
-          marginTop: `-${35}px`,
-          color: "white",
-          padding: "0 0px",
-          height: "60px",
-          ease: "power3.out",
-        });
-        gsap.to(menuRef.current, {
-          backdropFilter: "none",
-          duration: 0.2,
-          ease: "power3.out",
-        });
-      },
-      onLeaveBack: () => {
-        gsap.to(navRef.current, {
-          backgroundColor: "rgba(15, 23, 42, 0.0)",
-          borderBottom: "none",
-          duration: 0.2,
-          marginTop: 0,
-          ease: "power3.out",
-        });
-
-        gsap.to(menuRef.current, {
-          backdropFilter: "blur(5px)",
-          duration: 0.2,
-          ease: "power3.out",
-        });
-      },
-    });
-
-    gsap.from(logoRef.current, {
-      duration: 1,
-      y: -100,
-      opacity: 1,
-      ease: "power3.out",
-    });
-
-    menuItemsRef.current.forEach((item) => {
-      gsap.from(item, {
-        duration: 1,
-        y: -50,
-        opacity: 0,
-        ease: "power3.out",
-      });
-
-      gsap.to(item, {
-        duration: 1,
-        y: 0,
-        opacity: 1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: item,
-          start: "top bottom",
-          end: "bottom top",
-          toggleActions: "play none none reverse",
-        },
-      });
+      trigger: document.body,
+      start: "top -10",
+      end: 99999,
+      onUpdate: (self) => {
+        if (self.progress > 0 && navRef.current) {
+           // Shrink when scrolling down
+           gsap.to(navRef.current, {
+             padding: "8px 24px",
+             duration: 0.3,
+             ease: "power2.out"
+           });
+        } else if (navRef.current) {
+           // Original padding when at top
+           gsap.to(navRef.current, {
+             padding: "12px 32px", 
+             duration: 0.3,
+             ease: "power2.out"
+           });
+        }
+      }
     });
 
     return () => {
       scrollTriggerInstance.kill();
     };
-  }, [Cookies.get("Userdata") || user]);
+  }, []);
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -165,48 +114,51 @@ const Index = () => {
 
   return (
     <>
-      <div className="h-24 px-5 md:px-10 w-screen pt-3 sticky top-0 z-50">
-        <nav className="" ref={navRef}>
-          <div className="flex justify-between items-center py-4 h-full relative px-6">
+      <div className="w-full flex justify-center px-4">
+        {/* Navbar Container - Neubrutalist Pill */}
+        <nav 
+          ref={navRef}
+          className="bg-white border-2 border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center w-full max-w-7xl transition-all duration-300 py-3 px-8 z-50 overflow-hidden"
+        >
             <Link
               to="/"
-              className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-orange-400 px-5 rounded-2xl py-2.5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+              className="flex items-center space-x-3 group relative z-10"
             >
               <img
                 src={Logo}
                 alt="Logo"
-                className="w-8 h-8 drop-shadow-xl animate-pulse"
+                // Fixed dimensions to prevent shifting
+                className="w-10 h-10 object-contain group-hover:-rotate-12 transition-transform duration-300"
               />
-              <h1 className="text-xl font-bold text-white hidden sm:block">
+              <h1 className="text-xl font-bold text-stone-800 font-serif tracking-tight hidden sm:block whitespace-nowrap">
                 Pick My Pet
               </h1>
             </Link>
 
-            <div className="flex items-center gap-6">
-              <ul className="hidden md:flex items-center space-x-2 text-base font-medium  px-4 py-2 rounded-2xl  ">
+            <div className="flex items-center gap-4 md:gap-6">
+              {/* Desktop Links */}
+              <ul className="hidden md:flex items-center gap-2">
                 {[
                   {
                     route: "pets",
                     name: "Pets",
                     Icon: NavIcons.Services,
-                    color: "hover:text-blue-300",
                   },
                   {
                     route: "create-post",
                     name: "Post",
                     Icon: NavIcons.Post,
-                    color: "hover:text-blue-400",
                   },
                 ].map((item, index) => (
-                  <Link key={index}>
+                  <li key={index}>
                     <Link
                       to={`/${item.route}`}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl hover:bg-zinc-500/50 bg-zinc-300/50 backdrop-blur-md transition-all duration-300 text-black ${item.color}`}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-stone-600 font-bold hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 border border-transparent hover:border-emerald-200"
                     >
                       <item.Icon />
                       <span>{item.name}</span>
                     </Link>
-                  </Link>
+                  </li>
                 ))}
               </ul>
 
@@ -215,19 +167,18 @@ const Index = () => {
                 <Menu />
               </div>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Button - Yellow Pop */}
               <button
                 onClick={() => setShowMobileSidebar(true)}
-                className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-300/50 backdrop-blur-md hover:bg-zinc-400/50 transition-all duration-300 text-gray-800"
+                className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-[#FCD34D] border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-stone-900"
               >
                 <NavIcons.Menu />
               </button>
             </div>
-          </div>
         </nav>
       </div>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar Component */}
       <MobileSidebar
         isOpen={showMobileSidebar}
         onClose={() => setShowMobileSidebar(false)}
@@ -236,10 +187,10 @@ const Index = () => {
   );
 };
 
+// --- Sub-Component: Mobile Sidebar ---
 const MobileSidebar = ({ isOpen, onClose }) => {
   const Swal = useSwal();
   const { user, logout } = useUser();
-  const navigate = useNavigate();
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -248,14 +199,10 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         onClose();
       }
     };
-
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
   const handleLogout = () => {
@@ -266,10 +213,11 @@ const MobileSidebar = ({ isOpen, onClose }) => {
       showCancelButton: true,
       confirmButtonText: "Yes, logout",
       cancelButtonText: "Cancel",
-      confirmButtonColor: "#ef4444",
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#78716c",
     }).then((result) => {
       if (result.isConfirmed) {
-        logout(); // Use the logout from context
+        logout();
         onClose();
         Swal.fire("Logged out!", "Come back soon!", "success");
       }
@@ -293,137 +241,93 @@ const MobileSidebar = ({ isOpen, onClose }) => {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
-
-      {/* Sidebar */}
+      {/* Drawer */}
       <div
         ref={sidebarRef}
-        className={`fixed top-0 right-0 h-full w-80 bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 right-0 h-full w-80 bg-[#FDFCF8] border-l-2 border-black z-50 shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Menu</h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200 text-gray-700"
-            >
+          <div className="flex items-center justify-between p-6 border-b-2 border-stone-200">
+            <h2 className="text-xl font-bold text-stone-800 font-serif">Menu</h2>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-stone-200 transition-colors text-stone-700">
               <NavIcons.Close />
             </button>
           </div>
-
+          
           {/* User Info */}
           {user ? (
-            <div className="p-6 bg-gradient-to-r from-blue-500 to-orange-400">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-lg">
-                  {user?.userpic ? (
-                    <img
-                      src={user.userpic}
-                      className="w-full h-full object-cover"
-                      alt="User avatar"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <span className="text-2xl font-bold text-blue-500">
-                      {user?.firstname?.[0]?.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">
-                    {user?.firstname || "User"}
-                  </h3>
-                  <p className="text-sm text-white/90">{user?.email}</p>
-                </div>
-              </div>
-            </div>
+             <div className="p-6 bg-emerald-100 border-b-2 border-stone-200">
+               <div className="flex items-center gap-4">
+                 <div className="w-16 h-16 rounded-full bg-white border-2 border-emerald-400 flex items-center justify-center overflow-hidden shadow-sm">
+                    {user?.userpic ? (
+                       <img src={user.userpic} className="w-full h-full object-cover" alt="User" referrerPolicy="no-referrer" />
+                    ) : (
+                       <span className="text-2xl font-bold text-emerald-600">{user?.firstname?.[0]?.toUpperCase()}</span>
+                    )}
+                 </div>
+                 <div>
+                   <h3 className="text-lg font-bold text-stone-800 font-serif">{user?.firstname || "User"}</h3>
+                   <p className="text-xs text-stone-500 font-medium truncate max-w-[150px]">{user?.email}</p>
+                 </div>
+               </div>
+             </div>
           ) : (
-            <div className="p-6 bg-gradient-to-r from-blue-500 to-orange-400">
-              <Link
-                to="/auth"
-                onClick={onClose}
-                className="flex items-center justify-center gap-3 bg-white text-blue-600 font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-300"
-              >
-                <NavIcons.Lock />
-                <span>Login / Sign Up</span>
-              </Link>
-            </div>
+             <div className="p-6">
+                <Link to="/auth" onClick={onClose} className="w-full flex items-center justify-center gap-2 bg-[#FCD34D] border-2 border-black text-stone-900 font-bold py-3 px-6 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                   <NavIcons.Lock />
+                   <span>Login / Sign Up</span>
+                </Link>
+             </div>
           )}
-
-          {/* Navigation Links */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="py-4">
-              {/* Main Navigation */}
-              <div className="px-4 mb-6">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                  Navigation
-                </h3>
+          
+          {/* Nav Items */}
+          <div className="flex-1 overflow-y-auto bg-white p-4">
+              <div className="mb-6">
+                <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 px-2">Navigation</h3>
                 {navigationItems.map((item, index) => (
-                  <Link
-                    key={index}
-                    to={item.route}
-                    onClick={onClose}
-                    className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all duration-200 text-gray-700 hover:text-blue-600 mb-1 group"
-                  >
-                    <div className="group-hover:scale-110 transition-transform duration-200">
-                      <item.Icon />
-                    </div>
-                    <span className="font-medium">{item.name}</span>
+                  <Link key={index} to={item.route} onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-all font-bold text-stone-600 group">
+                    <div className="group-hover:scale-110 transition-transform"><item.Icon /></div>
+                    <span>{item.name}</span>
                   </Link>
                 ))}
               </div>
 
-              {/* User Menu */}
               {user && (
-                <div className="px-4 mb-6">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                    Account
-                  </h3>
-                  {userMenuItems.map((item, index) => (
-                    <Link
-                      key={index}
-                      to={item.route}
-                      onClick={onClose}
-                      className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all duration-200 text-gray-700 hover:text-blue-600 mb-1 group"
-                    >
-                      <div className="group-hover:scale-110 transition-transform duration-200">
-                        <item.Icon />
-                      </div>
-                      <span className="font-medium">{item.name}</span>
-                    </Link>
-                  ))}
-                </div>
+                 <div className="mb-6">
+                   <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 px-2">Account</h3>
+                   {userMenuItems.map((item, index) => (
+                     <Link key={index} to={item.route} onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-all font-medium text-stone-600 group">
+                       <div className="group-hover:scale-110 transition-transform"><item.Icon /></div>
+                       <span>{item.name}</span>
+                     </Link>
+                   ))}
+                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Logout Button */}
-          {user && (
-            <div className="p-4 border-t border-gray-200">
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-4 w-full px-4 py-3 rounded-xl bg-red-50 hover:bg-red-100 transition-all duration-200 text-red-600 group"
-              >
-                <div className="group-hover:scale-110 transition-transform duration-200">
-                  <NavIcons.Logout />
-                </div>
-                <span className="font-medium">Logout</span>
-              </button>
-            </div>
-          )}
+              {user && (
+                 <div className="border-t-2 border-stone-100 pt-4">
+                    <button onClick={handleLogout} className="flex items-center gap-4 w-full px-4 py-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold group">
+                       <div className="group-hover:scale-110 transition-transform"><NavIcons.Logout /></div>
+                       <span>Logout</span>
+                    </button>
+                 </div>
+              )}
+          </div>
         </div>
       </div>
     </>
   );
 };
 
+// --- Sub-Component: Desktop Menu ---
 const Menu = () => {
   const Swal = useSwal();
   const { user, logout } = useUser();
@@ -431,16 +335,11 @@ const Menu = () => {
   const menuRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowMenu(false);
-      }
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const menuItems = [
@@ -452,48 +351,31 @@ const Menu = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center gap-3 hover:opacity-90 rounded-xl transition-all duration-300 bg-zinc-800/10 backdrop-blur-sm px-4 py-2"
+        className="flex items-center gap-3 bg-stone-100 border border-stone-200 hover:border-emerald-300 rounded-full pl-1 pr-4 py-1 transition-all duration-300"
       >
-        <div className=" w-8 h-8 rounded-full bg-gradient-to-r from-blue-500/50 to-orange-400/20 flex items-center backdrop-blur-md justify-center text-black">
-          {(
-            <img
-              src={user?.userpic}
-              className="w-full h-full object-cover  rounded-full "
-              alt=""
-              referrerPolicy="no-referrer"
-            />
-          ) || user?.firstname?.[0]}
+        <div className="w-8 h-8 rounded-full bg-emerald-200 border border-emerald-400 flex items-center justify-center overflow-hidden">
+          {user?.userpic ? (
+             <img src={user?.userpic} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+          ) : (
+             <span className="font-bold text-emerald-800">{user?.firstname?.[0]?.toUpperCase()}</span>
+          )}
         </div>
-        <span className="text-white font-medium">
-          {user?.firstname || "User"}
-        </span>
-        <svg
-          className={`w-4 h-4 transition-transform duration-300 text-white ${
-            showMenu ? "rotate-180" : ""
-          }`}
-          viewBox="0 0 24 24"
-        >
-          <path fill="currentColor" d="M7 10l5 5 5-5H7z" />
-        </svg>
+        <span className="text-stone-700 font-bold text-sm truncate max-w-[100px]">{user?.firstname || "User"}</span>
+        <svg className={`w-4 h-4 transition-transform text-stone-400 ${showMenu ? "rotate-180" : ""}`} viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5H7z" /></svg>
       </button>
 
+      {/* Desktop Dropdown - Fixed: Ensure z-index is high enough */}
       {showMenu && (
-        <div className="absolute right-0 top-14 w-56 bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden transition-all duration-300">
+       <div className="fixed top-16 left-[85%]" >
+           <div className="absolute  right-0 top-14 w-56 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-[99999]">
           <div className="py-2">
             {menuItems.map((item, index) => (
-              <Link
-                key={index}
-                to={item.link}
-                className="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200"
-                onClick={() => setShowMenu(false)}
-              >
-                <item.icon className="w-5 h-5 text-blue-400" />
-                <span>{item.title}</span>
+              <Link key={index} to={item.link} className="flex items-center gap-3 px-4 py-3 text-stone-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors" onClick={() => setShowMenu(false)}>
+                <item.icon className="w-5 h-5" /> <span>{item.title}</span>
               </Link>
             ))}
-            <hr className="my-2 border-white/10" />
-            <button
-              onClick={() => {
+            <hr className="my-2 border-stone-100" />
+            <button onClick={() => {
                 Swal.fire({
                   title: "Ready to leave?",
                   text: "You will be logged out",
@@ -501,35 +383,28 @@ const Menu = () => {
                   showCancelButton: true,
                   confirmButtonText: "Yes, logout",
                   cancelButtonText: "Cancel",
-                  confirmButtonColor: "#ef4444",
+                  confirmButtonColor: "#10B981",
+                  cancelButtonColor: "#78716c",
                 }).then((result) => {
                   if (result.isConfirmed) {
-                    logout(); // Use the logout from context
+                    logout();
                     setShowMenu(false);
                     Swal.fire("Logged out!", "Come back soon!", "success");
                   }
                 });
-              }}
-              className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-600/10 w-full text-left transition-colors duration-200"
-            >
-              <NavIcons.Logout className="w-5 h-5" />
-              <span>Logout</span>
+              }} className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 w-full text-left font-bold transition-colors">
+              <NavIcons.Logout className="w-5 h-5" /> <span>Logout</span>
             </button>
           </div>
         </div>
+       </div>
       )}
     </div>
   ) : (
-    <Link
-      to="/auth"
-      className="flex items-center gap-3 hover:opacity-90 rounded-xl transition-all duration-300 bg-zinc-800/10 backdrop-blur-sm px-4 py-2"
-    >
-      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500/50 to-orange-400/20 flex items-center justify-center text-black">
-        <NavIcons.Lock />
-      </div>
-      <span className="text-white font-medium">Login</span>
+    <Link to="/auth" className="flex items-center gap-2 bg-stone-900 text-white font-bold py-2.5 px-6 rounded-full hover:bg-stone-700 transition-all shadow-md">
+      <NavIcons.Lock /> <span className="text-sm">Login</span>
     </Link>
   );
 };
 
-export default Index;
+export default Navbar;

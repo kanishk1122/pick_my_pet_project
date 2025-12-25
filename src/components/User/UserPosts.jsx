@@ -8,12 +8,14 @@ import { useSpecies } from "@hooks/useSpecies";
 const UserPosts = () => {
   const { user } = useUser();
   const Swal = useSwal();
-  const { posts, loading, fetchUserPosts, deletePost, updatePost } = usePosts();
+  const { posts, loading, pageInfo, fetchUserPosts, deletePost, updatePost } =
+    usePosts();
   const [editingPost, setEditingPost] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchUserPosts();
-  }, [fetchUserPosts]);
+    fetchUserPosts(currentPage);
+  }, [fetchUserPosts, currentPage]);
 
   const handleDelete = async (postId) => {
     try {
@@ -113,10 +115,42 @@ const UserPosts = () => {
           onUpdate={handleUpdate}
         />
       )}
+      <Pagination
+        pageInfo={pageInfo}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };
 
+const Pagination = ({ pageInfo, onPageChange, currentPage }) => {
+  if (!pageInfo || pageInfo.totalPages <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="flex justify-center items-center gap-4 mt-8">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+      >
+        Previous
+      </button>
+      <span className="text-gray-700">
+        Page {pageInfo.currentPage} of {pageInfo.totalPages}
+      </span>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === pageInfo.totalPages}
+        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  );
+};
 
 const PostCard = ({ post, onDelete, onEdit }) => {
   return (
@@ -192,15 +226,25 @@ const PostCard = ({ post, onDelete, onEdit }) => {
         {/* Info Grid - Compact */}
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-3 mb-2 sm:mb-3">
           <div className="bg-gray-50 p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg">
-            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">Species</span>
-            <p className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base truncate">{post.species}</p>
+            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">
+              Species
+            </span>
+            <p className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base truncate">
+              {post.species}
+            </p>
           </div>
           <div className="bg-gray-50 p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg">
-            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">Breed</span>
-            <p className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base truncate">{post.category}</p>
+            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">
+              Breed
+            </span>
+            <p className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base truncate">
+              {post.category}
+            </p>
           </div>
           <div className="bg-gray-50 p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg">
-            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">Price</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">
+              Price
+            </span>
             <p className="font-bold text-emerald-600 text-sm sm:text-base md:text-lg truncate">
               {post.type === "free"
                 ? "Free"
@@ -208,7 +252,9 @@ const PostCard = ({ post, onDelete, onEdit }) => {
             </p>
           </div>
           <div className="bg-gray-50 p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg">
-            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">Status</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">
+              Status
+            </span>
             <p className="font-semibold text-gray-900 capitalize flex items-center gap-1 text-xs sm:text-sm md:text-base">
               <span
                 className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
@@ -250,7 +296,11 @@ const PostCard = ({ post, onDelete, onEdit }) => {
         {/* Footer - Compact */}
         <div className="flex flex-col gap-2 pt-2 sm:pt-3 border-t border-gray-100">
           <span className="text-[10px] sm:text-xs text-gray-500 flex items-center gap-1">
-            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <svg
+              className="w-3 h-3 sm:w-3.5 sm:h-3.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
               <path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z" />
             </svg>
             {new Date(post.date).toLocaleDateString("en-IN", {
@@ -264,7 +314,11 @@ const PostCard = ({ post, onDelete, onEdit }) => {
               onClick={() => onEdit(post)}
               className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5 bg-blue-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-blue-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md text-xs sm:text-sm"
             >
-              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                className="w-3 h-3 sm:w-3.5 sm:h-3.5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
               </svg>
               Edit
@@ -273,7 +327,11 @@ const PostCard = ({ post, onDelete, onEdit }) => {
               onClick={() => onDelete(post._id)}
               className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5 bg-red-50 text-red-600 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-red-100 transition-all duration-200 font-medium border border-red-200 text-xs sm:text-sm"
             >
-              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                className="w-3 h-3 sm:w-3.5 sm:h-3.5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
               </svg>
               Delete

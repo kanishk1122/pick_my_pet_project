@@ -65,9 +65,11 @@ export const fetchPosts = createAsyncThunk(
 
 export const fetchUserPosts = createAsyncThunk(
   "posts/fetchUserPosts",
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 6 } = {}, { rejectWithValue }) => {
     try {
-      const response = await apiService.get(POST.GetUserPosts);
+      const response = await apiService.get(
+        `${POST.GetUserPosts}?page=${page}&limit=${limit}`
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch user posts");
@@ -79,7 +81,7 @@ export const fetchUserPosts = createAsyncThunk(
           currentPage: response.data.meta?.pagination?.page || 1,
           totalPages: response.data.meta?.pagination?.totalPages || 1,
           totalPosts: response.data.meta?.pagination?.total || 0,
-          limit: response.data.meta?.pagination?.limit || 12,
+          limit: response.data.meta?.pagination?.limit || 6,
         },
       };
     } catch (error) {

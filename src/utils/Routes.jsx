@@ -14,6 +14,8 @@ import PetViewer from "../components/Pet/PetViewer.jsx";
 import FilteredPetList from "../components/Pet/FilteredPetList.jsx";
 import {USER} from  "../Consts/apikeys.js"
 
+
+
 function App() {
   const [user, setUser] = useState(null);
 
@@ -71,15 +73,29 @@ function App() {
 }
 
 // Main layout with Navbar
-function MainLayout({ children }) {
+const MainLayout = ({ children }) => {
   return (
-    <div className="regular w-[99.3vw]">
-      <span className="!fixed top-5 z-[9999]">
-        <Navbar />
-      </span>
-      <div className="mt-20">{children}</div>
+    // 1. Global Theme Background (Cream) & Text Color
+    // overflow-x-hidden prevents horizontal scrollbars from animations
+    <div className="min-h-screen w-full bg-[#FDFCF8] text-stone-800 font-sans selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden relative">
+      
+      {/* 2. Floating Header Container */}
+      {/* pointer-events-none allows clicking on the page 'through' the empty space on sides of the navbar */}
+      <header className="fixed top-0 left-0 w-full z-[9999] pt-4 md:pt-6 px-0 sm:px-4 flex justify-center pointer-events-none">
+        {/* Restore pointer-events so the Navbar itself is clickable */}
+        <div className="w-full pointer-events-auto">
+          <Navbar />
+        </div>
+      </header>
+
+      {/* 3. Main Content Area */}
+      {/* Added enough top padding (pt-32) so the first section isn't hidden behind the floating navbar */}
+      <main className="w-full pt-32 md:pt-36 pb-12 mx-auto">
+        {children}
+      </main>
+
     </div>
   );
-}
+};
 
 export default App;

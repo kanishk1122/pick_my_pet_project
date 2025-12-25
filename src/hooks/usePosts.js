@@ -44,9 +44,12 @@ export const usePosts = () => {
     [dispatch]
   );
 
-  const fetchUserPostsAction = useCallback(() => {
-    return dispatch(fetchUserPosts());
-  }, [dispatch]);
+  const fetchUserPostsAction = useCallback(
+    (page, limit) => {
+      return dispatch(fetchUserPosts({ page, limit }));
+    },
+    [dispatch]
+  );
 
   const createPostAction = useCallback(
     (postData) => {

@@ -4,6 +4,8 @@ import postReducer from "./slices/postSlice";
 import speciesReducer from "./slices/speciesSlice";
 import addressReducer from "./slices/addressSlice";
 import userReducer from "./slices/userSlice";
+import breedReducer from "./slices/breedSlice";
+import allSpeciesReducer from "./slices/allSpeciesSlice";
 
 // Configure the store
 export const store = configureStore({
@@ -12,6 +14,8 @@ export const store = configureStore({
     species: speciesReducer,
     addresses: addressReducer,
     user: userReducer,
+    breeds: breedReducer,
+    allSpecies: allSpeciesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import { SLICER } from "../../Consts/apikeys";
@@ -6,44 +6,114 @@ import { SLICER } from "../../Consts/apikeys";
 // --- Custom SVGs (Stone/Emerald Theme) ---
 
 const GridIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+    />
   </svg>
 );
 
 const ListIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M4 6h16M4 12h16M4 18h16"
+    />
   </svg>
 );
 
 const SortIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+    />
   </svg>
 );
 
 const ChevronDownIcon = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M19 9l-7 7-7-7"
+    />
   </svg>
 );
 
 const SparklesIcon = () => (
-  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+  <svg
+    className="w-3.5 h-3.5 mr-1.5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+    />
   </svg>
 );
 
 const MoneyIcon = () => (
-  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="w-3.5 h-3.5 mr-1.5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const CheckIcon = () => (
-  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  <svg
+    className="w-4 h-4 text-emerald-600"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M5 13l4 4L19 7"
+    />
   </svg>
 );
 
@@ -59,13 +129,22 @@ const PostSlicer = ({
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
   // Map sort options locally to avoid dependency issues with icons in const files
-  const sortOptions = SLICER.SORT_OPTIONS; 
+  const sortOptions = SLICER.SORT_OPTIONS;
   const pageSizeOptions = SLICER.PAGE_SIZE_OPTIONS;
 
   const getCurrentSortLabel = () => {
     const option = sortOptions.find((opt) => opt.value === currentSort);
     return option ? option.label : "Sort By";
   };
+
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const parametersort = urlSearchParams.get("sort");
+  
+  useEffect(() => {
+    if (parametersort) {
+      onSortChange(parametersort);
+    }
+  }, [onSortChange, parametersort]);
 
   return (
     <motion.div
@@ -75,10 +154,8 @@ const PostSlicer = ({
       className="bg-white w-full"
     >
       <div className="px-4 md:px-6 py-4 md:py-5">
-        
         {/* Top Row - Results and Controls */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
-          
           {/* Left: Results Info */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="text-sm text-stone-600">
@@ -96,7 +173,6 @@ const PostSlicer = ({
 
           {/* Right: Controls Row */}
           <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full lg:w-auto ">
-            
             {/* Page Size Selector */}
             <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 transition-colors hover:border-emerald-200">
               <label className="text-xs font-bold text-stone-500 whitespace-nowrap uppercase tracking-wider">
@@ -208,11 +284,11 @@ const PostSlicer = ({
           <span className="text-xs font-bold text-stone-400 uppercase tracking-wider mr-1 hidden sm:block">
             Quick Sort:
           </span>
-          
+
           <button
             onClick={() => onSortChange("newest")}
             className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${
-              currentSort === "newest"
+               parametersort === "newest"
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm"
                 : "bg-white text-stone-600 border-stone-200 hover:border-emerald-300 hover:text-emerald-600"
             }`}
@@ -220,11 +296,11 @@ const PostSlicer = ({
             <SparklesIcon />
             Latest
           </button>
-          
+
           <button
             onClick={() => onSortChange("price-low")}
             className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${
-              currentSort === "price-low"
+               parametersort === "price-low"
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm"
                 : "bg-white text-stone-600 border-stone-200 hover:border-emerald-300 hover:text-emerald-600"
             }`}

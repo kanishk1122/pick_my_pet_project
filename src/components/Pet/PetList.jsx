@@ -142,7 +142,7 @@ const PetList = () => {
       <div className="min-h-screen bg-[#FDFCF8] flex items-center justify-center px-4">
         <div className="text-center bg-white p-8 rounded-[2rem] border border-stone-200 shadow-sm max-w-md w-full">
           <SadFaceIcon />
-          <h3 className="text-xl font-bold text-stone-800  mb-2">
+          <h3 className="text-xl font-bold text-stone-800 font-serif mb-2">
             Oops! Something went wrong
           </h3>
           <p className="text-stone-500 mb-6 text-sm">{error}</p>
@@ -159,11 +159,11 @@ const PetList = () => {
 
   return (
     // Global Background: Cream/Off-white
-    <div className="min-h-screen bg-[#FDFCF8] rounded-b-[2.5rem]">
+    <div className="min-h-screen bg-[#FDFCF8]">
       {/* Hero Section: Solid Sage Green with soft rounded bottom */}
       <div className="bg-emerald-600 text-white py-12 md:py-16 px-4 rounded-b-[2.5rem] shadow-sm mb-8">
         <div className="container mx-auto text-center md:text-left">
-          <h1 className="text-3xl md:text-5xl font-bold mb-3  tracking-wide">
+          <h1 className="text-3xl md:text-5xl font-bold mb-3 font-serif tracking-wide">
             Find Your Perfect Companion 🐾
           </h1>
           <p className="text-base md:text-lg text-emerald-50 max-w-2xl font-medium opacity-90">

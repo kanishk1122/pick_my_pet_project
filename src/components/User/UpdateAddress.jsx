@@ -1,13 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSwal } from "@utils/Customswal.jsx";
 import { useUser } from "../../utils/Usercontext";
 import { useAddresses } from "../../hooks/useAddresses";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for default marker icon issue with webpack
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
 
 const UpdateAddress = () => {
   const Swal = useSwal();
   const { user } = useUser();
   const {
     addresses,
+    pagination,
     getAddresses,
     addAddress,
     updateAddress,
@@ -27,10 +48,14 @@ const UpdateAddress = () => {
 
   const [formData, setFormData] = useState(initialFormState);
   const [editingId, setEditingId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const mapRef = useRef();
 
   useEffect(() => {
-    getAddresses();
-  }, [getAddresses]);
+    getAddresses(currentPage);
+  }, [getAddresses, currentPage]);
 
   const handleEdit = (address) => {
     setEditingId(address._id);
@@ -46,7 +71,9 @@ const UpdateAddress = () => {
     // Scroll to form on mobile
     if (window.innerWidth < 768) {
       setTimeout(() => {
-        document.querySelector('.address-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document
+          .querySelector(".address-form")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }
   };
@@ -75,15 +102,126 @@ const UpdateAddress = () => {
     setFormData(initialFormState);
   };
 
+  const LocationMarker = () => {
+    const map = useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng;
+        setSelectedPosition([lat, lng]);
+        map.flyTo(e.latlng, map.getZoom());
+        reverseGeocode([lat, lng]);
+      },
+    });
+
+    return selectedPosition === null ? null : (
+      <Marker position={selectedPosition}></Marker>
+    );
+  };
+
+  const ChangeView = ({ center, zoom }) => {
+    const map = useMap();
+    map.setView(center, zoom);
+    return null;
+  };
+
+  const reverseGeocode = async (coords) => {
+    const [lat, lon] = coords;
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      );
+      if (!response.ok) throw new Error("Reverse geocoding failed");
+      const data = await response.json();
+      if (data && data.address) {
+        const { address } = data;
+        setFormData((prev) => ({
+          ...prev,
+          street: address.road || "",
+          city: address.city || address.town || address.village || "",
+          state: address.state || "",
+          postalCode: address.postcode || "",
+          country: address.country || "India",
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "Could not fetch address for the location.", "error");
+    }
+  };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      Swal.fire(
+        "Geolocation Not Supported",
+        "Your browser does not support geolocation.",
+        "error"
+      );
+      return;
+    }
+
+    // Geolocation API is blocked on insecure origins in most modern browsers.
+    if (
+      window.location.protocol !== "https:" &&
+      window.location.hostname !== "localhost"
+    ) {
+      Swal.fire(
+        "Secure Connection Required",
+        "Getting your location automatically only works on a secure (HTTPS) connection. This feature will work when the site is deployed. For now, please select your location manually on the map.",
+        "warning"
+      );
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setSelectedPosition([latitude, longitude]);
+        if (mapRef.current) {
+          mapRef.current.flyTo([latitude, longitude], 15);
+        }
+        reverseGeocode([latitude, longitude]);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        let message = "Could not get current location. Please try again.";
+        if (error.code === error.PERMISSION_DENIED) {
+          message =
+            "Location access was denied. To use this feature, please enable location permissions for this site in your browser settings.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          message = "Location information is unavailable.";
+        } else if (error.code === error.TIMEOUT) {
+          message = "The request to get user location timed out.";
+        }
+        Swal.fire("Error", message, "error");
+      }
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const action = editingId
-      ? updateAddress(editingId, formData)
-      : addAddress(formData);
+    if (!selectedPosition) {
+      Swal.fire("Error!", "Please select a location on the map.", "error");
+      return;
+    }
+    setIsSubmitting(true);
 
     try {
+      const [lon, lat] = selectedPosition;
+      // 2. Prepare the data for the backend
+      const addressData = {
+        ...formData,
+        location: {
+          type: "Point",
+          coordinates: [parseFloat(lat), parseFloat(lon)],
+        },
+      };
+
+      // 3. Dispatch the action
+      const action = editingId
+        ? updateAddress(editingId, addressData)
+        : addAddress(addressData);
+
       const result = await action;
+
       if (result.meta.requestStatus === "fulfilled") {
         Swal.fire({
           icon: "success",
@@ -101,6 +239,8 @@ const UpdateAddress = () => {
         title: "Error!",
         text: error.message || "Failed to save address",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -130,7 +270,11 @@ const UpdateAddress = () => {
         {/* Header */}
         <div className="mb-8 md:mb-12 text-center">
           <div className="inline-flex items-center gap-2 md:gap-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 md:px-6 py-1.5 md:py-2 rounded-full mb-3 md:mb-4 shadow-lg text-sm md:text-base">
-            <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 24 24" fill="currentColor">
+            <svg
+              className="w-4 h-4 md:w-5 md:h-5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
               <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
             </svg>
             <span className="font-semibold">Address Management</span>
@@ -146,7 +290,7 @@ const UpdateAddress = () => {
           </p>
         </div>
 
-        {/* Address List */}
+        {/* Saved Addresses List */}
         <div className="mb-8 md:mb-12">
           <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
             <div className="w-1 h-6 md:h-8 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full" />
@@ -265,12 +409,71 @@ const UpdateAddress = () => {
           )}
         </div>
 
+        {/* Pagination Controls */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-8 mb-8">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-gray-700">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  Math.min(prev + 1, pagination.totalPages)
+                )
+              }
+              disabled={currentPage === pagination.totalPages}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
+
         {/* Address Form */}
         <div className="address-form bg-gradient-to-br from-emerald-50/50 to-green-50/50 p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl border border-emerald-100">
           <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
             <div className="w-1 h-6 md:h-8 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full" />
             {editingId ? "Edit Address" : "Add New Address"}
           </h3>
+
+          <div className="mb-4">
+            <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
+              Select Location on Map
+            </label>
+            <div className="h-64 w-full rounded-lg overflow-hidden border-2 border-gray-200">
+              <MapContainer
+                center={[20.5937, 78.9629]}
+                zoom={5}
+                style={{ height: "100%", width: "100%" }}
+                whenCreated={(mapInstance) => {
+                  mapRef.current = mapInstance;
+                }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <LocationMarker />
+                {selectedPosition && (
+                  <ChangeView center={selectedPosition} zoom={15} />
+                )}
+              </MapContainer>
+            </div>
+            <button
+              type="button"
+              onClick={handleGetCurrentLocation}
+              className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Use My Current Location
+            </button>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             {/* Street Address */}
@@ -406,22 +609,32 @@ const UpdateAddress = () => {
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4">
               <button
                 type="submit"
-                className="group flex-1 h-12 md:h-14 flex gap-2 md:gap-3 justify-center items-center text-white bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:shadow-xl focus:ring-4 focus:outline-none focus:ring-emerald-300 font-bold rounded-lg md:rounded-xl text-sm md:text-base px-6 transition-all duration-300 hover:scale-105"
+                disabled={isSubmitting}
+                className="group flex-1 h-12 md:h-14 flex gap-2 md:gap-3 justify-center items-center text-white bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:shadow-xl focus:ring-4 focus:outline-none focus:ring-emerald-300 font-bold rounded-lg md:rounded-xl text-sm md:text-base px-6 transition-all duration-300 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <span>{editingId ? "Update Address" : "Add Address"}</span>
-                <svg
-                  className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform duration-300"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                  />
-                </svg>
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>{editingId ? "Updating..." : "Adding..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{editingId ? "Update Address" : "Add Address"}</span>
+                    <svg
+                      className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform duration-300"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </>
+                )}
               </button>
               {editingId && (
                 <button

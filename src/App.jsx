@@ -8,7 +8,7 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_REACT_APP_CLIENT_KEY}>
       <ChatProvider>
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
+        <div className="min-h-screen flex flex-col bg-[#FDFCF8]">
           <AppRoutes />
           <Footer />
         </div>

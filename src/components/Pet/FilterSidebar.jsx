@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-// import { motion } from "framer-motion"; // Optional: Keep if you plan to animate
+import { useAddresses } from "../../hooks/useAddresses";
+import { useUser } from "../../utils/Usercontext";
 import { useSpecies } from "../../hooks/useSpecies";
+
 import "../../styles/rangeSlider.css";
 
-// --- Icons (Unified Stone Color) ---
+// --- Icons ---
 const FilterIcon = () => (
   <svg
     className="w-5 h-5 text-emerald-600 mr-2"
@@ -68,19 +70,73 @@ const MoneyIcon = () => (
   </svg>
 );
 
+const MapPinIcon = () => (
+  <svg
+    className="w-4 h-4 text-stone-400"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+    />
+  </svg>
+);
+
+import { useAllSpecies } from "../../hooks/useAllSpecies";
+import { useBreeds } from "../../hooks/useBreeds";
 const FilterSidebar = ({ onFilterChange, initialFilters }) => {
+  const { user } = useUser();
+  const { addresses: userAddresses, getAddresses } = useAddresses();
+  const { species: allSpecies, loading: isLoadingSpecies } = useAllSpecies();
+
+  useEffect(() => {
+    if (user) {
+      getAddresses();
+    }
+  }, [user, getAddresses]);
+
+  // Find default address ID
+  const defaultAddressId =
+    userAddresses.find((addr) => addr.isDefault)?._id ||
+    userAddresses[0]?._id ||
+    "";
+
   const [filters, setFilters] = useState({
     species: "",
-    breed: "", // This will use the category field from backend
+    breed: "",
     type: "",
     minPrice: "0",
     maxPrice: "100000",
+    // Location Filters
+    nearMe: true,
+    locationId: defaultAddressId,
+    latitude: null, // Stores raw latitude
+    longitude: null, // Stores raw longitude
+    maxDistance: "50",
     ...initialFilters,
   });
 
-  const { breeds, loading: isLoadingBreeds, getBreeds } = useSpecies();
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState(""); // To show permission errors
+
+  const {
+    breeds,
+    loading: isLoadingBreeds,
+    getBreeds,
+  } = useBreeds(filters.species);
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
 
+  // Sync initial filters
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
@@ -88,18 +144,95 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
     }));
   }, [initialFilters]);
 
+  // Default address logic: If 'Near Me' is on, but no location is set, pick default
+  useEffect(() => {
+    if (
+      !filters.locationId &&
+      !filters.latitude &&
+      defaultAddressId &&
+      filters.nearMe
+    ) {
+      setFilters((prev) => ({ ...prev, locationId: defaultAddressId }));
+    }
+  }, [defaultAddressId, filters.locationId, filters.latitude, filters.nearMe]);
+
   useEffect(() => {
     getBreeds(filters.species);
   }, [filters.species, getBreeds]);
 
+  // --- 📍 GEOLOCATION HANDLER ---
+  const handleLocationSelect = (e) => {
+    const value = e.target.value;
+    setLocationError("");
+
+    if (value === "current_location") {
+      // Check browser support
+      if (!navigator.geolocation) {
+        setLocationError("Geolocation is not supported by your browser");
+        return;
+      }
+
+      setIsLocating(true);
+
+      // Request Permission & Get Position
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // ✅ Success: Permission granted
+          console.log(
+            "Got Location:",
+            position.coords.latitude,
+            position.coords.longitude
+          );
+
+          setFilters((prev) => ({
+            ...prev,
+            locationId: "", // Clear saved address ID (important!)
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }));
+          setIsLocating(false);
+        },
+        (error) => {
+          // ❌ Error: Permission denied or unavailable
+          console.error("Geolocation Error:", error);
+          setIsLocating(false);
+
+          let errorMessage = "Unable to retrieve location.";
+          if (error.code === 1)
+            errorMessage = "Permission denied. Please allow location access.";
+          else if (error.code === 2) errorMessage = "Position unavailable.";
+          else if (error.code === 3) errorMessage = "Request timed out.";
+
+          setLocationError(errorMessage);
+
+          // Fallback to default address if available
+          setFilters((prev) => ({ ...prev, locationId: defaultAddressId }));
+        },
+        {
+          enableHighAccuracy: true, // Request best possible accuracy
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      // User selected a Saved Address
+      setFilters((prev) => ({
+        ...prev,
+        locationId: value,
+        latitude: null, // Clear raw coords
+        longitude: null, // Clear raw coords
+      }));
+    }
+  };
+
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFilters((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === "species" && { breed: "" }), // Reset breed when species changes
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "species" && { breed: "" }),
       ...(name === "type" &&
-        value !== "paid" && { minPrice: "0", maxPrice: "100000" }), // Reset price range when switching to free
+        value !== "paid" && { minPrice: "0", maxPrice: "100000" }),
     }));
   };
 
@@ -110,21 +243,13 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
   const handleRangeChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => {
-      const newFilters = {
-        ...prev,
-        [name]: value,
-      };
-
-      // Ensure minPrice doesn't exceed maxPrice
+      const newFilters = { ...prev, [name]: value };
       if (name === "minPrice" && parseInt(value) > parseInt(prev.maxPrice)) {
         newFilters.maxPrice = value;
       }
-
-      // Ensure maxPrice doesn't go below minPrice
       if (name === "maxPrice" && parseInt(value) < parseInt(prev.minPrice)) {
         newFilters.minPrice = value;
       }
-
       return newFilters;
     });
   };
@@ -133,47 +258,44 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
     const timer = setTimeout(() => {
       setDebouncedFilters(filters);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [filters]);
 
   useEffect(() => {
-    onFilterChange(debouncedFilters);
-  }, [debouncedFilters, onFilterChange]);
-
-  // Helper function to extract breed name and capitalize it
-  const getBreedDisplayName = (breed) => {
-    if (typeof breed === "string") {
-      return breed.charAt(0).toUpperCase() + breed.slice(1);
-    }
-
-    if (typeof breed === "object" && breed !== null) {
-      // Handle different possible breed object structures
-      const name = breed.name || breed.displayName || breed;
-
-      if (typeof name === "string") {
-        return name.charAt(0).toUpperCase() + name.slice(1);
+    const effectiveFilters = { ...debouncedFilters };
+    if (effectiveFilters.locationId) {
+      const selectedAddress = userAddresses.find(
+        (addr) => addr._id === effectiveFilters.locationId
+      );
+      if (selectedAddress) {
+        effectiveFilters.latitude = selectedAddress.location.coordinates[1];
+        effectiveFilters.longitude = selectedAddress.location.coordinates[0];
       }
     }
+    onFilterChange(effectiveFilters);
+  }, [debouncedFilters, onFilterChange, userAddresses]);
 
+  const getBreedDisplayName = (breed) => {
+    if (typeof breed === "string")
+      return breed.charAt(0).toUpperCase() + breed.slice(1);
+    if (typeof breed === "object" && breed !== null) {
+      const name = breed.name || breed.displayName || breed;
+      if (typeof name === "string")
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    }
     return "Unknown Breed";
   };
 
-  // Helper function to get breed value for option
   const getBreedValue = (breed) => {
-    if (typeof breed === "string") {
-      return breed;
-    }
-
-    if (typeof breed === "object" && breed !== null) {
+    if (typeof breed === "string") return breed;
+    if (typeof breed === "object" && breed !== null)
       return breed.name || breed.slug || breed.displayName || breed;
-    }
-
     return "";
   };
 
+
   return (
-    <div className="w-full ">
+    <div className="w-full">
       {/* Header */}
       <div className="flex items-center mb-6 pb-4 border-b border-stone-100">
         <FilterIcon />
@@ -182,7 +304,113 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
         </h2>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
+        {/* --- Location Section --- */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm font-bold text-stone-600">
+              <MapPinIcon /> Pets Near Me
+            </label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="nearMe"
+                checked={filters.nearMe}
+                onChange={handleInputChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+
+          {/* Location Options */}
+          {filters.nearMe && (
+            <div className="animate-fade-in-down p-4 bg-stone-50 rounded-2xl border border-stone-100 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wider">
+                  Search Around
+                </label>
+                <select
+                  value={
+                    filters.latitude ? "current_location" : filters.locationId
+                  }
+                  onChange={handleLocationSelect}
+                  disabled={isLocating}
+                  className={`w-full px-3 py-2 text-sm bg-white border rounded-lg text-stone-700 outline-none transition-all
+                                ${
+                                  locationError
+                                    ? "border-red-300 focus:border-red-500"
+                                    : "border-stone-200 focus:border-emerald-500"
+                                }
+                                disabled:bg-stone-50 disabled:cursor-wait`}
+                >
+                  <option value="current_location">
+                    {isLocating
+                      ? "Waiting for permission..."
+                      : "📍 Use Current Location"}
+                  </option>
+
+                  {userAddresses.length > 0 && (
+                    <option disabled>──────────</option>
+                  )}
+
+                  {userAddresses.map((addr) => (
+                    <option key={addr._id} value={addr._id}>
+                      🏠 {addr.city} {addr.isDefault ? "(Default)" : ""}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Status Messages */}
+                {isLocating && (
+                  <p className="text-[10px] text-stone-500 mt-1 animate-pulse">
+                    Please allow location access in your browser...
+                  </p>
+                )}
+                {locationError && (
+                  <p className="text-[10px] text-red-500 mt-1 font-medium">
+                    {locationError}
+                  </p>
+                )}
+                {filters.latitude && !isLocating && (
+                  <p className="text-[10px] text-emerald-600 mt-1 font-medium ml-1">
+                    ✓ Location set: {filters.latitude.toFixed(4)},{" "}
+                    {filters.longitude.toFixed(4)}
+                  </p>
+                )}
+              </div>
+
+              {/* Distance Slider */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                    Max Distance
+                  </label>
+                  <span className="text-xs font-bold font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                    {filters.maxDistance} km
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  name="maxDistance"
+                  min="5"
+                  max="500"
+                  step="5"
+                  value={filters.maxDistance}
+                  onChange={handleInputChange}
+                  className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                />
+                <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+                  <span>5km</span>
+                  <span>500km</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="border-b border-stone-100"></div>
+
         {/* Species Selection */}
         <div className="group">
           <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-600">
@@ -196,16 +424,20 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
               className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none appearance-none cursor-pointer hover:border-emerald-300"
             >
               <option value="">All Species</option>
-              <option value="dog">Dog</option>
-              <option value="cat">Cat</option>
-              <option value="bird">Bird</option>
-              <option value="other">Other</option>
+              {isLoadingSpecies ? (
+                <option disabled>Loading species...</option>
+              ) : ( allSpecies && 
+                allSpecies.data?.map((s) => (
+                  <option key={s._id} value={s.name.toLowerCase()}>
+                    {s.name}
+                  </option>
+                ))
+              )}
             </select>
-            {/* Custom dropdown arrow styling can be added here if appearance-none is used */}
           </div>
         </div>
 
-        {/* Breed Selection - Only shows when species is selected */}
+        {/* Breed Selection */}
         {filters.species && (
           <div className="animate-fade-in-down">
             <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-600">
@@ -222,7 +454,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
               {isLoadingBreeds ? (
                 <option disabled>Loading breeds...</option>
               ) : (
-                breeds.map((breed, index) => (
+                breeds.data.map((breed, index) => (
                   <option key={index} value={getBreedValue(breed)}>
                     {getBreedDisplayName(breed)}
                   </option>
@@ -232,7 +464,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
           </div>
         )}
 
-        {/* Type Selection (Free/Paid) */}
+        {/* Type Selection */}
         <div>
           <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-600">
             <TagIcon /> Category
@@ -249,7 +481,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
           </select>
         </div>
 
-        {/* Show price range only if type is 'paid' */}
+        {/* Price Range */}
         {filters.type !== "free" && (
           <div className="animate-fade-in-down p-4 bg-stone-50 rounded-2xl border border-stone-100">
             <label className="flex items-center gap-2 text-sm font-bold mb-4 text-stone-600">
@@ -285,17 +517,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                   step="1000"
                   value={filters.minPrice}
                   onChange={handleRangeChange}
-                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer 
-                  [&::-webkit-slider-thumb]:appearance-none 
-                  [&::-webkit-slider-thumb]:h-5 
-                  [&::-webkit-slider-thumb]:w-5 
-                  [&::-webkit-slider-thumb]:rounded-full 
-                  [&::-webkit-slider-thumb]:bg-white 
-                  [&::-webkit-slider-thumb]:border-2 
-                  [&::-webkit-slider-thumb]:border-emerald-500 
-                  [&::-webkit-slider-thumb]:shadow-md 
-                  [&::-webkit-slider-thumb]:transition-transform 
-                  [&::-webkit-slider-thumb]:hover:scale-110"
+                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
                 />
                 <input
                   type="range"
@@ -305,21 +527,10 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                   step="1000"
                   value={filters.maxPrice}
                   onChange={handleRangeChange}
-                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer 
-                  [&::-webkit-slider-thumb]:appearance-none 
-                  [&::-webkit-slider-thumb]:h-5 
-                  [&::-webkit-slider-thumb]:w-5 
-                  [&::-webkit-slider-thumb]:rounded-full 
-                  [&::-webkit-slider-thumb]:bg-white 
-                  [&::-webkit-slider-thumb]:border-2 
-                  [&::-webkit-slider-thumb]:border-emerald-500 
-                  [&::-webkit-slider-thumb]:shadow-md 
-                  [&::-webkit-slider-thumb]:transition-transform 
-                  [&::-webkit-slider-thumb]:hover:scale-110"
+                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
                 />
               </div>
 
-              {/* Manual Input Fields */}
               <div className="flex justify-between gap-2 pt-2">
                 <div className="relative w-full">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">
@@ -357,7 +568,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
         {/* Apply Filters Button */}
         <button
           onClick={() => onFilterChange(filters)}
-          className="w-full mt-6 bg-emerald-600 brand-button "
+          className="w-full mt-6 bg-emerald-600 brand-button"
         >
           Apply Filters
         </button>

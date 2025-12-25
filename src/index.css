@@ -93,3 +93,30 @@ body.loading:after {
   border-radius: 20px;
   border: 3px solid #E5E7EB;
 }
+
+
+@layer components {
+  /* The "Sweet Pet" / Neubrutalist Button Style */
+  .brand-button {
+    @apply flex items-center justify-center gap-2 px-6 py-3 font-bold transition-all duration-200;
+    @apply bg-white text-stone-900 border-2 border-black rounded-xl;
+    @apply shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]; /* The hard shadow */
+  }
+
+  .brand-button:hover {
+    @apply shadow-none translate-x-[2px] translate-y-[2px]; /* The "press" effect */
+  }
+
+  .brand-button:active {
+    @apply bg-stone-100;
+  }
+
+  /* Variations */
+  .brand-button-primary {
+    @apply brand-button bg-[#FCD34D]; /* Yellow */
+  }
+
+  .brand-button-accent {
+    @apply brand-button bg-[#34D399] text-white; /* Emerald */
+  }
+}

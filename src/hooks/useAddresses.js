@@ -9,13 +9,16 @@ import {
 
 export const useAddresses = () => {
   const dispatch = useAppDispatch();
-  const { addresses, loading, error } = useAppSelector(
+  const { addresses, pagination, loading, error } = useAppSelector(
     (state) => state.addresses
   );
 
-  const getAddresses = useCallback(() => {
-    dispatch(fetchAddresses());
-  }, [dispatch]);
+  const getAddresses = useCallback(
+    (page, limit) => {
+      dispatch(fetchAddresses({ page, limit }));
+    },
+    [dispatch]
+  );
 
   const addNewAddress = useCallback(
     (addressData) => {
@@ -40,6 +43,7 @@ export const useAddresses = () => {
 
   return {
     addresses,
+    pagination,
     loading,
     error,
     getAddresses,
