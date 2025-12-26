@@ -1,80 +1,119 @@
-body {
-  width: 99.3vw;
+/* --- SweetAlert Neubrutalist Theme --- */
+
+/* 1. The Overlay/Container */
+.swal-container, 
+.swal2-container {
+  background-color: rgba(28, 25, 23, 0.6) !important; /* Stone-900 with opacity */
+  backdrop-filter: blur(5px);
+  z-index: 9999 !important;
 }
 
-.swal-container {
-  background-color: white;
-  backdrop-filter: blur(10px); /* Assuming bg-opacity-50 is 50% */
-  border: 2px solid black; /* Border styling */
-  z-index: 9999; /* Z-index */
+/* 2. The Main Popup Card */
+.swal-popup,
+.swal2-popup {
+  background-color: #FDFCF8 !important; /* Theme Cream */
+  color: #1c1917 !important; /* Stone-900 */
+  border: 2px solid #000 !important; /* Thick Black Border */
+  border-radius: 2rem !important; /* Large rounded corners */
+  box-shadow: 12px 12px 0px 0px rgba(0,0,0,1) !important; /* Hard Shadow */
+  padding: 2.5rem 2rem !important;
+  font-family: "Nunito", sans-serif !important;
+  width: 90% !important;
+  max-width: 28rem !important; /* Clean sizing */
 }
 
-.swal-title {
-  color: black;
-  font-weight: 600; /* Assuming font-semibold is 600 */
+/* 3. Title Styling */
+.swal-title,
+.swal2-title {
+  color: #1c1917 !important;
+  font-family: "Inria Sans", serif !important; /* Serif for headings */
+  font-weight: 700 !important;
+  font-size: 1.875rem !important; /* 30px */
+  margin-bottom: 1rem !important;
 }
 
-.swal-content {
-  color: black;
-  border: 2px solid black; /* Border styling */
-  font-weight: 600; /* Assuming font-semibold is 600 */
+/* 4. Content/Text Styling */
+.swal-content,
+.swal2-html-container {
+  color: #57534e !important; /* Stone-600 */
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  border: none !important; /* Resetting your old border */
 }
 
-.swal-button {
-  background-color: #0fb65d; /* Green background (similar to bg-green-500) */
-  color: white; /* Text color */
-  font-weight: 600; /* Font weight similar to font-semibold */
-  padding: 0.5rem 1rem; /* Padding for top/bottom and left/right */
-  border-radius: 0.5rem; /* Rounded corners */
-  transition: box-shadow 0.3s; /* Smooth shadow transition */
-  border: 2px solid black; /* Border styling */
-  font-size: 1.25rem; /* Font size similar to text-xl */
-  cursor: pointer; /* Pointer cursor on hover */
+/* 5. Icons (Adjusting default Swal icons to match theme) */
+.swal2-icon {
+  border-width: 3px !important;
+  border-color: #000 !important; /* Black rings around icons */
+}
+.swal2-icon.swal2-success {
+  border-color: #34D399 !important; /* Emerald */
+  color: #34D399 !important;
+}
+.swal2-icon.swal2-error {
+  border-color: #EF4444 !important; /* Red */
+  color: #EF4444 !important;
+}
+.swal2-icon.swal2-warning {
+  border-color: #FCD34D !important; /* Yellow */
+  color: #FCD34D !important;
 }
 
-.swal-button:hover {
-  @apply transition-shadow duration-300  hover:shadow-customHover py-2 text-xl font-semibold bg-white rounded-lg cursor-pointer;
+/* 6. Action Bar (Button Container) */
+.swal2-actions {
+  gap: 1rem;
+  margin-top: 2rem !important;
+  width: 100%;
+  justify-content: center;
 }
 
-.swal-button:hover {
-  background-color: #0fb65d; /* Assuming hover:bg-green-600 */
+/* 7. Confirm Button (Emerald Theme) */
+.swal-button,
+.swal2-confirm {
+  background-color: #34D399 !important; /* Emerald-400 */
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.75rem !important;
+  border: 2px solid #000 !important;
+  box-shadow: 4px 4px 0px 0px #000 !important; /* Hard Shadow */
+  transition: all 0.2s ease-in-out !important;
+  cursor: pointer;
+  outline: none !important;
 }
 
-.swal-cancelbutton {
-  --tw-bg-opacity: 1;
-  background-color: rgb(252 165 165 / var(--tw-bg-opacity)) /* #fca5a5 */;
-  color: white; /* Text color */
-  font-weight: 600; /* Font weight similar to font-semibold */
-  padding: 0.5rem 1rem; /* Padding for top/bottom and left/right */
-  border-radius: 0.5rem; /* Rounded corners */
-  transition: box-shadow 0.3s; /* Smooth shadow transition */
-  border: 2px solid black; /* Border styling */
-  font-size: 1.25rem; /* Font size similar to text-xl */
-  margin-left: 20px;
-
-  cursor: pointer; /* Pointer cursor on hover */
+.swal-button:hover,
+.swal2-confirm:hover {
+  background-color: #10B981 !important; /* Emerald-500 */
+  box-shadow: none !important; /* Press effect */
+  transform: translate(2px, 2px) !important;
 }
 
-.swal-button:hover {
-  @apply transition-shadow duration-300  hover:shadow-customHover py-2 text-xl font-semibold bg-white rounded-lg cursor-pointer;
-}
-.swal-cancelbutton:hover {
-  @apply transition-shadow duration-300  hover:shadow-customHover py-2 text-xl font-semibold bg-white rounded-lg cursor-pointer;
+/* 8. Cancel Button (Red/White Theme) */
+.swal-cancelbutton,
+.swal2-cancel {
+  background-color: #fff !important;
+  color: #EF4444 !important; /* Red Text */
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.75rem !important;
+  border: 2px solid #000 !important;
+  box-shadow: 4px 4px 0px 0px #000 !important; /* Hard Shadow */
+  transition: all 0.2s ease-in-out !important;
+  cursor: pointer;
+  margin-right: 0 !important; /* Reset default margins */
 }
 
-.swal-cancelbutton:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(252 165 165 / var(--tw-bg-opacity)) /* #fca5a5 */;
-}
-.swal-button:hover {
-  background-color: #0fb65d; /* Assuming hover:bg-green-600 */
+.swal-cancelbutton:hover,
+.swal2-cancel:hover {
+  background-color: #FEF2F2 !important; /* Light Red BG */
+  box-shadow: none !important;
+  transform: translate(2px, 2px) !important;
 }
 
-.swal-popup {
-  background-color: #fff; /*  white background */
-  color: #000; /* Black text */
-  padding: 20px; /* Padding inside the popup */
-  border: 2px solid black; /* Border styling */
-  min-height: 400px;
-  border-radius: 20px; /* Rounded corners */
+/* Remove default focus outline from Swal */
+.swal2-styled:focus {
+  box-shadow: 4px 4px 0px 0px #000 !important;
 }

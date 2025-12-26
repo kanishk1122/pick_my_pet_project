@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import aboutImage from "../../assets/images/about_hero.jpg"; // Make sure to have a cute image here
-import missionImage from "../../assets/images/mission_dog.jpg"; // Another cute image
+import aboutImage from "../../assets/images/dog_and_girl.jpg"; // Make sure to have a cute image here
+import missionImage from "../../assets/images/dog_and_girl.jpg"; // Another cute image
 
 // --- Custom Icons ---
 const HeartHandIcon = () => (
@@ -50,7 +50,7 @@ const Index = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/pets">
-                <button className="brand-button-accent text-lg px-8 py-4">
+                <button className="brand-button-accent text-lg px-8 py-4 text-black">
                   Browse Pets
                 </button>
               </Link>

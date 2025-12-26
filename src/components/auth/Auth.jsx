@@ -1,185 +1,186 @@
 import { useEffect, useState } from "react";
-import v1 from "../../assets/video/hsv2.mp4";
-import image from "../../assets/images/pikaso_texttoimage_A-handdrawn-vibrant-outdoor-scene-in-a-peaceful-vi.jpeg";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../../utils/Usercontext";
 import Login from "./Login.jsx";
 import Signup from "./Signup.jsx";
 import Googlebutton from "./Googlebutton.jsx";
-import { useNavigate } from "react-router-dom";
-import { useUser } from "../../utils/Usercontext";
+import v1 from "../../assets/video/hsv2.mp4"; // Ensure path is correct
+import image from "../../assets/images/pikaso_texttoimage_A-handdrawn-vibrant-outdoor-scene-in-a-peaceful-vi.jpeg"; // Ensure path is correct
+
+// --- Icons ---
+const PawIcon = () => (
+  <svg className="w-6 h-6 text-stone-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 5.5c-2.5 0-4.5 2-4.5 4.5v2.5h9v-2.5c0-2.5-2-4.5-4.5-4.5z" />
+  </svg>
+);
+
+const ArrowRightIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+  </svg>
+);
 
 const Auth = () => {
-  const [email, setEmail] = useState(null);
-  const [password, setPassword] = useState(null);
-  const [authtype, setauthtype] = useState("login");
-  const Navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authtype, setAuthtype] = useState("login");
+  const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useUser();
 
-  // Redirect if already authenticated
+  // Redirect if authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      Navigate("/", { replace: true });
+      navigate("/", { replace: true });
     }
-  }, [isAuthenticated, isLoading, Navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Show loading while checking authentication
+  // Loading State
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+      <div className="flex items-center justify-center min-h-screen bg-[#FDFCF8]">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
       </div>
     );
   }
 
-  // Don't render auth form if user is authenticated
-  if (isAuthenticated) {
-    return null;
-  }
+  if (isAuthenticated) return null;
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center overflow-hidden px-4 md:px-20 py-5 md:py-10">
-      <div className="bg-white w-full h-full flex flex-col md:flex-row justify-between items-center rounded-3xl py-3 md:py-5 px-4 md:px-10">
-        {/* Left Section */}
-        <div
-          className={`flex flex-col justify-between h-full ${
-            isMobile ? "w-full h-fit" : "w-1/2"
-          } relative order-2 md:order-1`}
-        >
-          <div
-            className={`${isMobile ? "relative" : "absolute"} top-0 ${
-              !isMobile && (authtype !== "login" ? "left-[65vw]" : "left-1/2")
-            } duration-200 ${
-              !isMobile && "-translate-x-1/2"
-            } w-full h-full flex justify-between flex-col py-6`}
-          >
-            <h1 className="text-3xl md:text-6xl font-extrabold leading-tight md:leading-snug text-center md:text-left">
-              {authtype !== "login" ? (
-                <>
-                  <span className="text-[#FFD700]">Signup</span> <br /> to get
-                  started
-                </>
+    <div className="min-h-screen w-full bg-[#FDFCF8] flex items-center justify-center p-4 md:p-8 font-sans overflow-hidden relative">
+      
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-100 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 opacity-50 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-100 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 opacity-50 pointer-events-none"></div>
+
+      {/* Main Container Card */}
+      <div className="w-full max-w-6xl bg-white rounded-[3rem] border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col md:flex-row min-h-[600px] md:h-[750px] relative z-10">
+        
+        {/* --- Left Side: Visuals & Messaging (Desktop) / Header (Mobile) --- */}
+        <div className={`
+          relative w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-between transition-all duration-500 ease-in-out order-1
+          ${authtype === 'login' ? 'bg-[#FCD34D]' : 'bg-emerald-500 text-white'}
+        `}>
+          {/* Logo / Badge */}
+          <div className="flex items-center gap-2 mb-8 md:mb-0">
+            <div className="p-2 bg-white border-2 border-black rounded-full shadow-sm">
+              <PawIcon />
+            </div>
+            <span className={`font-bold font-serif text-xl ${authtype === 'signup' ? 'text-white' : 'text-stone-900'}`}>
+              Pick My Pet
+            </span>
+          </div>
+
+          {/* Dynamic Content */}
+          <div className="flex-1 flex flex-col justify-center items-center text-center space-y-8">
+            <h1 className={`text-4xl md:text-6xl font-bold font-serif leading-tight ${authtype === 'signup' ? 'text-white' : 'text-stone-900'}`}>
+              {authtype === 'login' ? (
+                <>Welcome back, <br/> Friend!</>
               ) : (
-                <div className="text-center max-sm:mt-24">
-                  <h2>
-                    <span className="text-green-500">Welcome Again!</span>{" "}
-                    <br /> A sweet pet is waiting for you
-                  </h2>
-                </div>
+                <>Join the <br/> Pawsome Family!</>
               )}
             </h1>
-            {!isMobile &&
-              (authtype !== "login" ? (
-                <img
-                  src={image}
-                  alt=""
-                  className="w-[90%] mr-20 h-[300px] object-cover rounded-3xl"
-                />
-              ) : (
-                <video
-                  className="w-[90%] mr-20 h-[200px] object-cover rounded-3xl"
-                  autoPlay
-                  loop
-                  muted
-                >
-                  <source src={v1} type="video/mp4" />
-                </video>
-              ))}
-          </div>
-        </div>
+            
+            <p className={`text-lg md:text-xl font-medium max-w-sm ${authtype === 'signup' ? 'text-emerald-100' : 'text-stone-700'}`}>
+              {authtype === 'login' 
+                ? "Your furry friends missed you. Log in to continue your journey."
+                : "Create an account to find, adopt, or rehome pets with ease."
+              }
+            </p>
 
-        {/* Right Section */}
-        <div
-          className={`relative ${
-            isMobile ? "w-full" : "w-1/2"
-          } h-full order-1 md:order-2`}
-        >
-          <div
-            className={`${isMobile ? "relative" : "absolute"} top-0 ${
-              !isMobile && (authtype == "login" ? "left-1/2" : "-left-1/2")
-            } duration-200 ${!isMobile && "-translate-x-1/2"} w-full h-full`}
-          >
-            <svg
-              className={`${
-                isMobile ? "hidden" : "block"
-              } bg-white absolute top-0 left-1/2 h-full w-[80%] -translate-x-1/2 bg-opacity-50 backdrop-blur-[1px] border-2 border-black rounded-3xl`}
-              height="100%"
-              viewBox="0 0 1156 1557"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M1156 0H0V1557H1156V0ZM204 990C173.072 990 148 1015.07 148 1046V1322C148 1352.93 173.072 1378 204 1378H956C986.928 1378 1012 1352.93 1012 1322V1046C1012 1015.07 986.928 990 956 990H204Z"
-                fill="#fff"
-              />
-            </svg>
-
-            <div className="absolute top-0 left-0 w-full h-full rounded-3xl px-4 md:px-20">
-              {authtype === "login" ? (
-                <Login
-                  email={email}
-                  setEmail={setEmail}
-                  password={password}
-                  setPassword={setPassword}
-                  authtype={authtype}
-                  setauthtype={setauthtype}
-                />
-              ) : (
-                <Signup
-                  email={email}
-                  setEmail={setEmail}
-                  password={password}
-                  setPassword={setPassword}
-                  authtype={authtype}
-                />
-              )}
-
-              <div className="flex flex-col items-center justify-center absolute   md:bottom-10 left-1/2 -translate-x-1/2">
-                <Googlebutton />
-                <p className="text-center text-sm md:text-base mt-3">
-                  {authtype !== "login"
-                    ? "Already have an account?"
-                    : "Don't have an account?"}
-                </p>
-                <button
-                  onClick={() =>
-                    setauthtype(authtype === "login" ? "signup" : "login")
-                  }
-                  className="group brand-button h-[40px] md:h-[50px] w-fit flex gap-4 md:gap-16 justify-between px-6 md:px-10 items-center mt-2"
-                >
-                  <span className="text-base md:text-xl">
-                    {authtype !== "login" ? "Login" : "Signup"}
-                  </span>
-                  <div
-                    className={`w-fit h-fit text-white bg-black rounded-full p-1 ${
-                      authtype !== "login"
-                        ? "group-hover:rotate-0"
-                        : "group-hover:rotate-180"
-                    } ${authtype !== "login" && "rotate-180"} duration-200`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                      className="md:w-8 md:h-8"
-                      fill="currentColor"
-                    >
-                      <path d="M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z"></path>
-                    </svg>
-                  </div>
-                </button>
+            {/* Visual Media */}
+            <div className="relative w-full max-w-xs aspect-square mt-4 hidden md:block group">
+              <div className="absolute inset-0 bg-black rounded-[2rem] translate-x-2 translate-y-2"></div>
+              <div className="absolute inset-0 bg-white border-2 border-black rounded-[2rem] overflow-hidden">
+                {authtype === 'login' ? (
+                  <video 
+                    src={v1} 
+                    autoPlay loop muted className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <img 
+                    src={image} 
+                    alt="Happy pets" 
+                    className="w-full h-full object-cover" 
+                  />
+                )}
+              </div>
+              {/* Sticker */}
+              <div className="absolute -bottom-4 -right-4 bg-white px-4 py-2 border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-6 group-hover:rotate-12 transition-transform">
+                <span className="font-bold text-stone-800 text-sm">
+                  {authtype === 'login' ? "👋 Hello!" : "🚀 Let's Go!"}
+                </span>
               </div>
             </div>
           </div>
+
+          {/* Toggle Button (Mobile Only - simplified) */}
+          <div className="md:hidden mt-8 text-center">
+             <button 
+               onClick={() => setAuthtype(authtype === 'login' ? 'signup' : 'login')}
+               className="underline font-bold text-sm"
+             >
+               {authtype === 'login' ? "New here? Create Account" : "Already have an account? Login"}
+             </button>
+          </div>
         </div>
+
+        {/* --- Right Side: Forms --- */}
+        <div className="w-full md:w-1/2 bg-white p-8 md:p-16 flex flex-col justify-center order-2">
+          
+          {/* Form Container */}
+          <div className="max-w-md mx-auto w-full space-y-8">
+            
+            <div className="text-center md:text-left mb-8">
+              <h2 className="text-3xl font-bold text-stone-800 font-serif mb-2">
+                {authtype === 'login' ? 'Log In' : 'Sign Up'}
+              </h2>
+              <p className="text-stone-500 font-medium">
+                {authtype === 'login' ? 'Please enter your details.' : 'Get started in seconds.'}
+              </p>
+            </div>
+
+            {/* Google Button Wrapper */}
+            <div className="w-full flex justify-center items-center">
+              <Googlebutton />
+            </div>
+
+            <div className="relative flex items-center justify-center my-6">
+              <div className="border-t-2 border-stone-100 w-full absolute"></div>
+              <span className="bg-white px-3 text-stone-400 text-sm font-bold relative z-10">OR</span>
+            </div>
+
+            {/* Form Inputs */}
+            {authtype === 'login' ? (
+              <Login 
+                email={email} setEmail={setEmail} 
+                password={password} setPassword={setPassword} 
+                authtype={authtype} setauthtype={setAuthtype} 
+              />
+            ) : (
+              <Signup 
+                email={email} setEmail={setEmail} 
+                password={password} setPassword={setPassword} 
+                authtype={authtype} 
+              />
+            )}
+
+            {/* Desktop Toggle Switch */}
+            <div className="hidden md:flex items-center justify-center gap-2 mt-8 pt-8 border-t-2 border-stone-100">
+              <span className="text-stone-500 font-medium">
+                {authtype === 'login' ? "Don't have an account?" : "Already have an account?"}
+              </span>
+              <button
+                onClick={() => setAuthtype(authtype === 'login' ? 'signup' : 'login')}
+                className="font-bold text-stone-900 hover:text-emerald-600 underline decoration-2 underline-offset-4 transition-colors flex items-center gap-1 group"
+              >
+                {authtype === 'login' ? 'Sign up for free' : 'Log in here'}
+                <ArrowRightIcon />
+              </button>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
   );

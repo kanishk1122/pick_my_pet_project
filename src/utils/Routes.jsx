@@ -12,6 +12,14 @@ import FreePetList from "../components/Pet/FreePetList.jsx";
 import PaidPetList from "../components/Pet/PaidPetList.jsx";
 import PetViewer from "../components/Pet/PetViewer.jsx";
 import FilteredPetList from "../components/Pet/FilteredPetList.jsx";
+import Service from "../components/Service/Index.jsx";
+import Contact from "../components/Contact/Index.jsx";
+import Blog from "../components/Blog/Index.jsx";
+import About from "../components/About/Index.jsx";
+import TermsOfService from "../components/TermsOfService/Index.jsx";
+import Faq from "../components/Faq/Index.jsx";
+import PrivacyPolicy from "../components/PrivacyPolicy/Index.jsx";
+import HelpCenter from "../components/HelpCenter/Index.jsx";
 import {USER} from  "../Consts/apikeys.js"
 
 
@@ -54,10 +62,18 @@ function App() {
               <Route path="/create-post" element={<CreatePost />} />
               <Route path="/pets" element={<PetList />} />
               <Route path="/pets/filter" element={<FilteredPetList />} />
+              <Route path='/services' element={<Service />}/>
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/faq" element={<Faq />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/help-center" element={<HelpCenter />} />
               <Route
                 path="/pet/:slug"
                 element={<PetViewer onAccess={handlePetInfoAccess} />}
               />
+              <Route path="about-us" element={<About />} />
               <Route path="/pets/loving-companions" element={<FreePetList />} />
               <Route path="/pets/companion-pets" element={<PaidPetList />} />
             </Routes>
@@ -81,7 +97,7 @@ const MainLayout = ({ children }) => {
       
       {/* 2. Floating Header Container */}
       {/* pointer-events-none allows clicking on the page 'through' the empty space on sides of the navbar */}
-      <header className="fixed top-0 left-0 w-full z-[9999] pt-4 md:pt-6 px-0 sm:px-4 flex justify-center pointer-events-none">
+      <header className="fixed top-0 left-0 w-[99vw] z-[9999] pt-4 md:pt-6 px-0 sm:px-4 flex justify-center pointer-events-none">
         {/* Restore pointer-events so the Navbar itself is clickable */}
         <div className="w-full pointer-events-auto">
           <Navbar />

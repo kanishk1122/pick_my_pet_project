@@ -81,14 +81,12 @@ const Navbar = () => {
       end: 99999,
       onUpdate: (self) => {
         if (self.progress > 0 && navRef.current) {
-           // Shrink when scrolling down
            gsap.to(navRef.current, {
              padding: "8px 24px",
              duration: 0.3,
              ease: "power2.out"
            });
         } else if (navRef.current) {
-           // Original padding when at top
            gsap.to(navRef.current, {
              padding: "12px 32px", 
              duration: 0.3,
@@ -112,13 +110,32 @@ const Navbar = () => {
     }
   }, [showMobileSidebar]);
 
+  // Define Desktop Links Dynamically
+  const desktopLinks = [
+    {
+      route: "pets",
+      name: "Pets",
+      Icon: NavIcons.Services,
+    },
+  ];
+
+  // Only show "Post" if user is logged in
+  if (user) {
+    desktopLinks.push({
+      route: "create-post",
+      name: "Post",
+      Icon: NavIcons.Post,
+    });
+  }
+
   return (
     <>
       <div className="w-full flex justify-center px-4">
-        {/* Navbar Container - Neubrutalist Pill */}
+        {/* Navbar Container */}
+        {/* Removed 'overflow-hidden' so the dropdown isn't clipped */}
         <nav 
           ref={navRef}
-          className="bg-white border-2 border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center w-full max-w-7xl transition-all duration-300 py-3 px-8 z-50 overflow-hidden"
+          className="bg-white border-2 border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center w-full max-w-7xl transition-all duration-300 py-3 px-8 z-50 relative"
         >
             <Link
               to="/"
@@ -127,7 +144,6 @@ const Navbar = () => {
               <img
                 src={Logo}
                 alt="Logo"
-                // Fixed dimensions to prevent shifting
                 className="w-10 h-10 object-contain group-hover:-rotate-12 transition-transform duration-300"
               />
               <h1 className="text-xl font-bold text-stone-800 font-serif tracking-tight hidden sm:block whitespace-nowrap">
@@ -138,18 +154,7 @@ const Navbar = () => {
             <div className="flex items-center gap-4 md:gap-6">
               {/* Desktop Links */}
               <ul className="hidden md:flex items-center gap-2">
-                {[
-                  {
-                    route: "pets",
-                    name: "Pets",
-                    Icon: NavIcons.Services,
-                  },
-                  {
-                    route: "create-post",
-                    name: "Post",
-                    Icon: NavIcons.Post,
-                  },
-                ].map((item, index) => (
+                {desktopLinks.map((item, index) => (
                   <li key={index}>
                     <Link
                       to={`/${item.route}`}
@@ -163,11 +168,11 @@ const Navbar = () => {
               </ul>
 
               {/* Desktop Menu */}
-              <div className="hidden md:block">
+              <div className="hidden md:block relative z-50">
                 <Menu />
               </div>
 
-              {/* Mobile Menu Button - Yellow Pop */}
+              {/* Mobile Menu Button */}
               <button
                 onClick={() => setShowMobileSidebar(true)}
                 className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-[#FCD34D] border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-stone-900"
@@ -178,7 +183,6 @@ const Navbar = () => {
         </nav>
       </div>
 
-      {/* Mobile Sidebar Component */}
       <MobileSidebar
         isOpen={showMobileSidebar}
         onClose={() => setShowMobileSidebar(false)}
@@ -187,7 +191,7 @@ const Navbar = () => {
   );
 };
 
-// --- Sub-Component: Mobile Sidebar ---
+// --- Mobile Sidebar ---
 const MobileSidebar = ({ isOpen, onClose }) => {
   const Swal = useSwal();
   const { user, logout } = useUser();
@@ -224,11 +228,15 @@ const MobileSidebar = ({ isOpen, onClose }) => {
     });
   };
 
+  // Define Mobile Links Dynamically
   const navigationItems = [
     { route: "/", name: "Home", Icon: NavIcons.Home },
     { route: "/pets", name: "Browse Pets", Icon: NavIcons.Services },
-    { route: "/create-post", name: "Create Post", Icon: NavIcons.Post },
   ];
+
+  if (user) {
+    navigationItems.push({ route: "/create-post", name: "Create Post", Icon: NavIcons.Post });
+  }
 
   const userMenuItems = user
     ? [
@@ -239,14 +247,12 @@ const MobileSidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={`fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
-      {/* Drawer */}
       <div
         ref={sidebarRef}
         className={`fixed top-0 right-0 h-full w-80 bg-[#FDFCF8] border-l-2 border-black z-50 shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${
@@ -254,7 +260,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className="flex items-center justify-between p-6 border-b-2 border-stone-200">
             <h2 className="text-xl font-bold text-stone-800 font-serif">Menu</h2>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-stone-200 transition-colors text-stone-700">
@@ -262,7 +267,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             </button>
           </div>
           
-          {/* User Info */}
           {user ? (
              <div className="p-6 bg-emerald-100 border-b-2 border-stone-200">
                <div className="flex items-center gap-4">
@@ -275,7 +279,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                  </div>
                  <div>
                    <h3 className="text-lg font-bold text-stone-800 font-serif">{user?.firstname || "User"}</h3>
-                   <p className="text-xs text-stone-500 font-medium truncate max-w-[150px]">{user?.email}</p>
+                   <p className="text-xs text-stone-500 truncate max-w-[150px]">{user?.email}</p>
                  </div>
                </div>
              </div>
@@ -288,7 +292,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
              </div>
           )}
           
-          {/* Nav Items */}
           <div className="flex-1 overflow-y-auto bg-white p-4">
               <div className="mb-6">
                 <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 px-2">Navigation</h3>
@@ -327,7 +330,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
   );
 };
 
-// --- Sub-Component: Desktop Menu ---
+// --- Desktop Menu ---
 const Menu = () => {
   const Swal = useSwal();
   const { user, logout } = useUser();
@@ -364,10 +367,9 @@ const Menu = () => {
         <svg className={`w-4 h-4 transition-transform text-stone-400 ${showMenu ? "rotate-180" : ""}`} viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5H7z" /></svg>
       </button>
 
-      {/* Desktop Dropdown - Fixed: Ensure z-index is high enough */}
+      {/* Desktop Dropdown */}
       {showMenu && (
-       <div className="fixed top-16 left-[85%]" >
-           <div className="absolute  right-0 top-14 w-56 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-[99999]">
+        <div className="absolute right-0 top-14 w-56 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-50">
           <div className="py-2">
             {menuItems.map((item, index) => (
               <Link key={index} to={item.link} className="flex items-center gap-3 px-4 py-3 text-stone-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors" onClick={() => setShowMenu(false)}>
@@ -397,7 +399,6 @@ const Menu = () => {
             </button>
           </div>
         </div>
-       </div>
       )}
     </div>
   ) : (

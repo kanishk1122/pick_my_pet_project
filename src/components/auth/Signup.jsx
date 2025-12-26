@@ -1,231 +1,264 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import Custominputfields, { Passwordcustomfiled } from "../Custominputfields";
-import { useSwal } from "@utils/Customswal.jsx"; // Path to SwalContext
-import "@CSS/transtation.css";
+import { useSwal } from "@utils/Customswal.jsx";
 import { USER } from "../../Consts/apikeys";
 import axios from "axios";
 import { encrypter } from "../../Consts/Functions";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 
-const Signup = ({ email, setEmail, password, setPassword, authtype }) => {
+// --- Icons ---
+const UserIcon = () => (
+  <svg className="w-5 h-5 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+);
+const MailIcon = () => (
+  <svg className="w-5 h-5 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+);
+const LockIcon = () => (
+  <svg className="w-5 h-5 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+);
+const TagIcon = () => (
+  <svg className="w-5 h-5 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>
+);
+
+const Signup = ({ email, setEmail, password, setPassword }) => {
   const [confirmepassword, setConfirmepassword] = useState("");
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  
   const [stage, setStage] = useState(1);
   const lastStage = 3;
-  const Swal = useSwal(); // Use SwalContext
-  const [passwordMatch, setPasswordMatch] = useState(false);
+  const Swal = useSwal();
   const navigate = useNavigate();
-  const [referralCode, setReferralCode] = useState("");
+  const [passwordMatch, setPasswordMatch] = useState(true);
 
-  // Check if passwords match
+  // Check passwords match
   useEffect(() => {
-    setPasswordMatch(password === confirmepassword);
+    if (confirmepassword) {
+      setPasswordMatch(password === confirmepassword);
+    } else {
+      setPasswordMatch(true); // Don't show error if empty
+    }
   }, [password, confirmepassword]);
 
-  // Button styling based on password match
-  const passwordMatchClass = passwordMatch
-    ? "hover:bg-yellow-300"
-    : "hover:bg-gray-200 cursor-not-allowed";
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
 
-  // Form submission handler
-  const handleFormSubmit = (e) => {
-    if (!email) {
-      Swal.fire({
-        icon: "info",
-        title: "Oops...",
-        text: "Please enter your email",
-      });
-      return;
+    // Validation
+    if (stage === 1 && !email) {
+      return Swal.fire({ icon: "info", title: "Missing Email", text: "Please enter your email address." });
+    }
+    if (stage === 2) {
+      if (!password || !confirmepassword) {
+        return Swal.fire({ icon: "info", title: "Missing Password", text: "Please fill in both password fields." });
+      }
+      if (!passwordMatch) {
+        return Swal.fire({ icon: "error", title: "Mismatch", text: "Passwords do not match." });
+      }
+    }
+    if (stage === 3 && (!firstname || !lastname)) {
+      return Swal.fire({ icon: "info", title: "Missing Name", text: "Please enter your full name." });
     }
 
-    if (stage >= 2 && (!password || !confirmepassword)) {
-      Swal.fire({
-        icon: "info",
-        title: "Oops...",
-        text: "Please enter your password",
-      });
-      return;
-    }
-
-    if (stage >= 2 && !passwordMatch) {
-      Swal.fire({
-        icon: "info",
-        title: "Oops...",
-        text: "Passwords do not match",
-      });
-      return;
-    }
-
-    if (stage >= 3 && (!firstname || !lastname)) {
-      Swal.fire({
-        icon: "info",
-        title: "Oops...",
-        text: "Please enter your name",
-      });
-      return;
-    }
-
+    // Move to next stage
     if (stage < lastStage) {
       setStage(stage + 1);
+      return;
     }
 
-    if (stage == lastStage) {
+    // Final Submit
+    try {
       const encryptedPassword = encrypter(password);
-      axios
-        .post(`${USER.Register}`, {
-          email: email,
-          password: encryptedPassword,
-          firstname: firstname,
-          lastname: lastname,
-          referralCode: referralCode,
-        })
-        .then((response) => {
-          console.log(response.data.userdata);
-          Swal.fire({
-            icon: "success",
-            title: "Account Created",
-            text: "Please check your email for confirmation",
-          });
-          try {
-            const stringify = JSON.stringify(response.data.userdata);
-            const userdata = encrypter(stringify);
-            Cookies.set("Userdata", userdata, { expires: 150 });
-          } catch (error) {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Something went wrong",
-            });
-          }
-          // navigate("/");
-          window.location.href = "/";
-        })
-        .catch((error) => {
-          console.log(error?.response?.data, "this is error");
-          Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: error?.response?.data?.msg,
-            footer: "This email is already registered",
-          });
-        });
+      const response = await axios.post(`${USER.Register}`, {
+        email,
+        password: encryptedPassword,
+        firstname,
+        lastname,
+        referralCode,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Welcome Aboard! 🎉",
+        text: "Account created successfully.",
+        confirmButtonColor: "#10B981"
+      });
+
+      // Save session
+      const userdata = encrypter(JSON.stringify(response.data.userdata));
+      Cookies.set("Userdata", userdata, { expires: 150 });
+      
+      window.location.href = "/";
+
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error?.response?.data?.msg || "Something went wrong. Please try again.",
+        confirmButtonColor: "#EF4444"
+      });
     }
   };
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleFormSubmit(e);
-      }}
-      className="w-full h-fit rounded-2xl p-3 sm:p-8 flex flex-col gap-1 overflow-hidden"
-    >
-      {/* Stage 1 - Email Input */}
-      <div
-        className={`twodivtranstation h-[70px] sm:h-[110px] ${
-          stage === 1 ? "transition-start" : "transition-exit"
-        } w-full`}
-      >
-        <Custominputfields
-          from="email"
-          name="Email"
-          type="email"
-          getter={email}
-          setter={setEmail}
-        />
+    <form onSubmit={handleFormSubmit} className="w-full flex flex-col items-center justify-center min-h-[300px]">
+      
+      {/* Progress Dots */}
+      <div className="flex gap-2 mb-8">
+        {[1, 2, 3].map((s) => (
+          <div 
+            key={s} 
+            className={`h-2 rounded-full transition-all duration-300 ${
+              stage >= s ? "w-8 bg-emerald-500" : "w-2 bg-stone-200"
+            }`}
+          ></div>
+        ))}
       </div>
 
-      {/* Stage 2 - Password Inputs */}
-      <div
-        className={`twodivtranstation h-[140px] sm:h-[220px] ${
-          stage === 2 ? "transition-start" : "transition-exit"
-        } flex flex-col gap-1`}
-      >
-        <Passwordcustomfiled
-          password={password}
-          setPassword={setPassword}
-          name="Password"
-        />
-        <Custominputfields
-          from="confirmepassword"
-          name="Confirm Password"
-          type="te"
-          getter={confirmepassword}
-          setter={setConfirmepassword}
-        />
-        {!passwordMatch && (
-          <div className="h-[20px] w-full text-red-400">
-            Passwords do not match
+      {/* --- STAGE 1: Email --- */}
+      {stage === 1 && (
+        <div className="w-full space-y-4 animate-fade-in-up">
+          <label className="block text-sm font-bold text-stone-600 mb-1 ml-1 uppercase tracking-wide">
+            Email Address
+          </label>
+          <div className="relative">
+            <MailIcon />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full pl-12 pr-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-bold text-stone-800 placeholder-stone-400"
+              autoFocus
+            />
           </div>
+        </div>
+      )}
+
+      {/* --- STAGE 2: Password --- */}
+      {stage === 2 && (
+        <div className="w-full space-y-4 animate-fade-in-up">
+          <div>
+            <label className="block text-sm font-bold text-stone-600 mb-1 ml-1 uppercase tracking-wide">
+              Password
+            </label>
+            <div className="relative">
+              <LockIcon />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-12 pr-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-bold text-stone-800"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-stone-600 mb-1 ml-1 uppercase tracking-wide">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <LockIcon />
+              <input
+                type="password"
+                value={confirmepassword}
+                onChange={(e) => setConfirmepassword(e.target.value)}
+                placeholder="••••••••"
+                className={`w-full pl-12 pr-4 py-3 bg-stone-50 border-2 rounded-xl focus:bg-white focus:outline-none transition-all font-bold text-stone-800 
+                  ${!passwordMatch ? "border-red-400 focus:border-red-500" : "border-stone-200 focus:border-emerald-500"}`}
+              />
+            </div>
+            {!passwordMatch && (
+              <p className="text-xs text-red-500 font-bold mt-1 ml-1">Passwords do not match</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* --- STAGE 3: Details --- */}
+      {stage === 3 && (
+        <div className="w-full space-y-4 animate-fade-in-up">
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label className="block text-sm font-bold text-stone-600 mb-1 ml-1 uppercase tracking-wide">First Name</label>
+              <div className="relative">
+                <UserIcon />
+                <input
+                  type="text"
+                  value={firstname}
+                  onChange={(e) => setFirstname(e.target.value)}
+                  placeholder="John"
+                  className="w-full pl-12 pr-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-bold text-stone-800"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="w-1/2">
+              <label className="block text-sm font-bold text-stone-600 mb-1 ml-1 uppercase tracking-wide">Last Name</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={lastname}
+                  onChange={(e) => setLastname(e.target.value)}
+                  placeholder="Doe"
+                  className="w-full pl-4 pr-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-bold text-stone-800"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-stone-600 mb-1 ml-1 uppercase tracking-wide">
+              Referral Code <span className="text-stone-400 font-normal">(Optional)</span>
+            </label>
+            <div className="relative">
+              <TagIcon />
+              <input
+                type="text"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+                placeholder="FRIEND123"
+                className="w-full pl-12 pr-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-bold text-stone-800 uppercase"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- Buttons --- */}
+      <div className="flex gap-4 w-full mt-8">
+        {stage > 1 && (
+          <button
+            type="button"
+            onClick={() => setStage(stage - 1)}
+            className="flex-1 py-3 rounded-xl border-2 border-stone-300 text-stone-500 font-bold hover:bg-stone-100 transition-all"
+          >
+            Back
+          </button>
         )}
-      </div>
-
-      {/* Stage 3 - First and Last Name Inputs */}
-      <div
-        className={`twodivtranstation h-[140px] sm:h-[220px] ${
-          stage === 3 ? "transition-start" : "transition-exit"
-        } flex flex-col gap-1`}
-      >
-        <Custominputfields
-          from="firstname"
-          name="First Name"
-          type="text"
-          getter={firstname}
-          setter={setFirstname}
-        />
-        <Custominputfields
-          from="lastname"
-          name="Last Name"
-          type="text"
-          getter={lastname}
-          setter={setLastname}
-        />
-        <Custominputfields
-          from="referralCode"
-          name="Referral Code (optional)"
-          type="text"
-          getter={referralCode}
-          setter={setReferralCode}
-        />
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center duration-200 mt-2">
+        
         <button
-          type="button"
-          onClick={() => stage > 1 && setStage(stage - 1)}
-          className={`duration-200 text-xs sm:text-base ${
-            stage > 1
-              ? "w-1/3 brand-button my-1 sm:my-4 hover:bg-red-300"
-              : "w-0"
-          }`}
+          type="submit"
+          className={`flex-1 py-3 rounded-xl border-2 border-black font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all
+            ${stage === lastStage ? "bg-[#34D399] text-white" : "bg-[#FCD34D] text-stone-900"}`}
         >
-          Back
-        </button>
-
-        <button
-          className={`brand-button my-1 sm:my-4 duration-200 text-xs sm:text-base ${
-            stage === 1
-              ? "w-full hover:bg-yellow-300"
-              : `w-[60%] ${passwordMatchClass}`
-          }`}
-        >
-          {stage === lastStage ? "Sign Up" : "Next"}
+          {stage === lastStage ? "Create Account" : "Next"}
         </button>
       </div>
+
     </form>
   );
 };
 
 Signup.propTypes = {
-  email: PropTypes.string.isRequired,
-  setEmail: PropTypes.func.isRequired,
-  password: PropTypes.string.isRequired,
-  setPassword: PropTypes.func.isRequired,
-  authtype: PropTypes.string,
+  email: PropTypes.string,
+  setEmail: PropTypes.func,
+  password: PropTypes.string,
+  setPassword: PropTypes.func,
 };
 
 export default Signup;
