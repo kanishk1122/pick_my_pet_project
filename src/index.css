@@ -1,0 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Nunito", sans-serif; /* Using 'Nunito' as the default font */
+  width: 100%;
+  overflow-x: hidden;
+  background: #b3dfee;
+  min-height: 100vh;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #b3dfee;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #fff;
+  border: #000 2px solid;
+  border-right: none;
+  border-radius: 100px 0px 0px 100px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* In your global CSS file */
+.brand-button {
+  @apply transition-shadow duration-300 border-2 border-black hover:shadow-customHover py-2 text-xl font-semibold bg-white rounded-lg cursor-pointer;
+}
+
+/* Add this to your global CSS file */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #10B981 #E5E7EB;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #E5E7EB;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #10B981;
+  border-radius: 20px;
+  border: 3px solid #E5E7EB;
+}
+
+
+@layer components {
+  /* The "Sweet Pet" / Neubrutalist Button Style */
+  .brand-button {
+    @apply flex items-center justify-center gap-2 px-6 py-3 font-bold transition-all duration-200;
+    @apply bg-white text-stone-900 border-2 border-black rounded-xl;
+    @apply shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]; /* The hard shadow */
+  }
+
+  .brand-button:hover {
+    @apply shadow-none translate-x-[2px] translate-y-[2px]; /* The "press" effect */
+  }
+
+  .brand-button:active {
+    @apply bg-stone-100;
+  }
+
+  /* Variations */
+  .brand-button-primary {
+    @apply brand-button bg-[#FCD34D]; /* Yellow */
+  }
+
+  .brand-button-accent {
+    @apply brand-button bg-[#34D399] text-white; /* Emerald */
+  }
+}
